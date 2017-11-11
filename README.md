@@ -2,6 +2,7 @@
 A simple shell script I run to keep my MacBook clean and patched.
 
 ## What It Does:
+- Deletes Saved Wireless Networks
 - Installs Needed System Updates
 - Empties The Trash
 - Deletes All System Logs
@@ -13,8 +14,8 @@ A simple shell script I run to keep my MacBook clean and patched.
 - Securely Wipe Freespace
 
 ## Usage:
-
 - Review for your preferences.
+- Set homessid and workssid variable to stop from deleting those!
 - `chmod +x maid.sh`
 - `./maid.sh`
 
