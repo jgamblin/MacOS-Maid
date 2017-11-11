@@ -15,7 +15,7 @@ A simple shell script I run to keep my MacBook clean and patched.
 
 ## Usage:
 - Review for your preferences.
-- Set homessid and workssid variable to stop from deleting those!
+- Set `homessid` and `workssid` variable to stop from deleting those!
 - `chmod +x maid.sh`
 - `./maid.sh`
 
