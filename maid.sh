@@ -3,7 +3,7 @@ SECONDS=0
 
 #Delete Saved SSIDs For Security
 #Be Sure To Set Home And Work SSID for ease of use.
-printf "Deleting Saved Wireless Networks.\n"
+printf "Deleting saved wireless networks.\n"
 homessid="AddMe"
 workssid="AddMe"
 IFS=$'\n'
@@ -46,7 +46,7 @@ printf "Removing all Docker containers.\n"
 docker rmi -f "$(docker images -q --filter 'dangling=true')" > /dev/null 2>&1
 
 #Purging Memory.
-printf "Purging Memory.\n"
+printf "Purging memory.\n"
 sudo purge > /dev/null 2>&1
 
 #Securly Erasing Data.
