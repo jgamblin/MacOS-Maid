@@ -1,7 +1,7 @@
 #!/bin/bash
 SECONDS=0
 
-#Delete Saved SSID For Security
+#Delete Saved SSIDs For Security
 #Be Sure To Set Home And Work SSID for ease of use.
 printf "Deleting Saved Wireless Networks.\n"
 homessid="AddMe"
