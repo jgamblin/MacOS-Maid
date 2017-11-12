@@ -49,6 +49,10 @@ docker rmi -f "$(docker images -q --filter 'dangling=true')" > /dev/null 2>&1
 printf "Purging memory.\n"
 sudo purge > /dev/null 2>&1
 
+#Removing Known SSH Hosts
+printf "Removing known ssh hosts.\n"
+sudo rm -f /Users/$(whoami)/.ssh/known_hosts > /dev/null 2>&1
+
 #Securly Erasing Data.
 printf "Securely erasing free space (This will take a while). \n"
 diskutil secureErase freespace 0 "$( df -h / | tail -n 1 | awk '{print $1}')" > /dev/null 2>&1
