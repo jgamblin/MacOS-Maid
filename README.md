@@ -11,10 +11,11 @@ A simple shell script I run to keep my MacBook clean and patched.
 - Cleans Ruby
 - Removes All Docker Containers
 - Purges Memory
+- Removes known_hosts file.
 - Securely Wipe Freespace
 
 ## Usage:
-- Review for your preferences.
+- Review for your preferences and comment out options *You* dont want.
 - Set `homessid` and `workssid` variable to stop from deleting those!
 - `chmod +x maid.sh`
 - `./maid.sh`
