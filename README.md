@@ -15,7 +15,7 @@ A simple shell script I run to keep my MacBook clean and patched.
 - Securely Wipe Freespace
 
 ## Usage:
-- Review for your preferences and comment out options *You* dont want.
+- Review for your preferences and comment out options **You** dont want.
 - Set `homessid` and `workssid` variable to stop from deleting those!
 - `chmod +x maid.sh`
 - `./maid.sh`
