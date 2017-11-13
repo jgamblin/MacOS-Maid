@@ -1,6 +1,15 @@
 #!/bin/bash
 SECONDS=0
 
+#Check if running as root and if not elevate
+amiroot=$(sudo -n uptime 2>&1| grep -c "load")
+if [ "$amiroot" -eq 0 ]
+then
+    printf "Maid Service Require Root Access. Please Enter Your Password.\n"
+    sudo -v
+    printf "\n"
+fi
+
 #Delete Saved SSIDs For Security
 #Be Sure To Set Home And Work SSID for ease of use.
 printf "Deleting saved wireless networks.\n"

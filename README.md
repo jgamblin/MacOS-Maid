@@ -2,6 +2,7 @@
 A simple shell script I run to keep my MacBook clean and patched.
 
 ## What It Does:
+- Prompt For Password If Not Root 
 - Deletes Saved Wireless Networks
 - Installs Needed System Updates
 - Empties The Trash
