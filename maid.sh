@@ -44,6 +44,8 @@ brew cleanup --force -s > /dev/null 2>&1
 brew cask cleanup > /dev/null 2>&1
 rm -rfv /Library/Caches/Homebrew/* > /dev/null 2>&1
 brew tap --repair > /dev/null 2>&1
+brew update > /dev/null 2>&1
+brew upgrade > /dev/null 2>&1
 
 #Cleaning Up Ruby.
 printf "Cleanup up Ruby.\n"
