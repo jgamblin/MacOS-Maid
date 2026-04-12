@@ -33,7 +33,7 @@ def test_safe_dirs_never_include_var_folders():
         assert "var/folders" not in str(log_dir), f"DANGEROUS: {log_dir} contains var/folders"
 
 
-@patch("macos_maid.modules.system_cache.SystemCacheModule._dir_size")
+@patch("macos_maid.modules.system_cache.dir_size")
 def test_scan_with_existing_dirs(mock_dir_size):
     """Test scan reports sizes of cache and log dirs that exist."""
 
@@ -70,7 +70,7 @@ def test_scan_with_existing_dirs(mock_dir_size):
     assert "500.0 MB" in items_str or "Caches" in items_str
 
 
-@patch("macos_maid.modules.system_cache.SystemCacheModule._dir_size")
+@patch("macos_maid.modules.system_cache.dir_size")
 def test_scan_with_nonexistent_dirs(mock_dir_size):
     """Test scan skips nonexistent directories."""
     mock_dir_size.return_value = 0
@@ -88,7 +88,7 @@ def test_scan_with_nonexistent_dirs(mock_dir_size):
 
 
 @patch("subprocess.run")
-@patch("macos_maid.modules.system_cache.SystemCacheModule._dir_size")
+@patch("macos_maid.modules.system_cache.dir_size")
 def test_clean_success(mock_dir_size, mock_run):
     """Test clean removes cache contents and log files."""
     # Return different sizes: before and after for each directory
@@ -123,7 +123,7 @@ def test_clean_success(mock_dir_size, mock_run):
     assert len(result.errors) == 0
 
 
-@patch("macos_maid.modules.system_cache.SystemCacheModule._dir_size")
+@patch("macos_maid.modules.system_cache.dir_size")
 def test_clean_error_handling(mock_dir_size):
     """Test clean handles errors gracefully."""
     mock_dir_size.return_value = 1024 * 1024 * 100

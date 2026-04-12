@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from macos_maid.modules.base import AuditResult, CleanResult, Finding, Module, ScanResult
+from macos_maid.modules.base import AuditResult, Finding, Module
 
 
 class LaunchAuditModule(Module):
@@ -55,14 +55,6 @@ class LaunchAuditModule(Module):
                 )
 
         return items
-
-    def scan(self) -> ScanResult:
-        """Preview what this module would do (audit-only, returns empty)."""
-        return ScanResult.empty()
-
-    def clean(self) -> CleanResult:
-        """Execute cleanup operations (audit-only, returns empty)."""
-        return CleanResult.empty()
 
     def audit(self) -> AuditResult:
         """Audit launch daemons and agents.

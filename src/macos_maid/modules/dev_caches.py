@@ -8,11 +8,11 @@ node_modules, .venv, target/, build/, or any project directories.
 from __future__ import annotations
 
 import shutil
-import subprocess
 from pathlib import Path
 
 from macos_maid.modules.base import AuditResult, CleanResult, Module, ScanResult
 from macos_maid.reporter import format_bytes
+from macos_maid.utils import dir_size
 
 
 class DevCachesModule(Module):
@@ -32,45 +32,13 @@ class DevCachesModule(Module):
         "xcode_derived": Path.home() / "Library" / "Developer" / "Xcode" / "DerivedData",
     }
 
-    def _dir_size(self, path: Path) -> int:
-        """Get directory size in bytes using du -sk.
-
-        Args:
-            path: Directory path to measure
-
-        Returns:
-            Size in bytes, or 0 if directory doesn't exist or error occurs
-        """
-        try:
-            result = subprocess.run(
-                ["du", "-sk", str(path)],
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=30,
-            )
-
-            if result.returncode != 0:
-                return 0
-
-            # Parse output: "1024\t/path/to/dir\n"
-            output = result.stdout.strip()
-            if not output:
-                return 0
-
-            size_kb = int(output.split("\t")[0])
-            return size_kb * 1024  # Convert KB to bytes
-
-        except (ValueError, IndexError, OSError):
-            return 0
-
     def scan(self) -> ScanResult:
         """Preview what caches exist and their sizes."""
         items = []
         total_bytes = 0
 
         for cache_name, cache_path in self.CACHE_PATHS.items():
-            size = self._dir_size(cache_path)
+            size = dir_size(cache_path)
             if size > 0:
                 items.append(f"{cache_name}: {format_bytes(size)}")
                 total_bytes += size
@@ -89,7 +57,7 @@ class DevCachesModule(Module):
 
         for cache_name, cache_path in self.CACHE_PATHS.items():
             # Get size before removal
-            size = self._dir_size(cache_path)
+            size = dir_size(cache_path)
 
             if not cache_path.exists():
                 continue

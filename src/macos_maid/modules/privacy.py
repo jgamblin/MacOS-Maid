@@ -109,22 +109,46 @@ class PrivacyModule(Module):
         return permissions
 
     def _clear_recent_items(self) -> None:
-        """Clear recent items using AppleScript."""
-        script = """
-        tell application "System Events"
-            tell property list file "~/Library/Preferences/com.apple.recentitems.plist"
-                set value of property list item "RecentApplications" to {}
-                set value of property list item "RecentDocuments" to {}
-                set value of property list item "RecentServers" to {}
-            end tell
-        end tell
-        """
+        """Clear recent items by resetting the SFL2 recent items database.
 
+        Works on macOS Ventura (13+) and later. Falls back to legacy plist
+        approach for older macOS versions.
+        """
+        # Modern approach: clear the SFL2 database used by macOS 13+
+        sfl2_paths = [
+            Path.home()
+            / "Library/Application Support/com.apple.sharedfilelist"
+            / "com.apple.LSSharedFileList.RecentDocuments.sfl2",
+            Path.home()
+            / "Library/Application Support/com.apple.sharedfilelist"
+            / "com.apple.LSSharedFileList.RecentApplications.sfl2",
+            Path.home()
+            / "Library/Application Support/com.apple.sharedfilelist"
+            / "com.apple.LSSharedFileList.RecentServers.sfl2",
+        ]
+
+        cleared = False
+        for sfl2 in sfl2_paths:
+            if sfl2.exists():
+                try:
+                    sfl2.unlink()
+                    cleared = True
+                except OSError:
+                    pass
+
+        if cleared:
+            return
+
+        # Legacy fallback: use defaults for older macOS
         subprocess.run(
-            ["osascript", "-e", script],
+            [
+                "defaults",
+                "delete",
+                "com.apple.recentitems",
+            ],
             capture_output=True,
             text=True,
-            check=True,
+            check=False,
             timeout=10,
         )
 

@@ -14,13 +14,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from macos_maid.modules.base import (
-    AuditResult,
-    CleanResult,
-    Finding,
-    Module,
-    ScanResult,
-)
+from macos_maid.modules.base import AuditResult, Finding, Module, worst_severity
 
 
 class AppAuditModule(Module):
@@ -29,14 +23,6 @@ class AppAuditModule(Module):
     name = "app_audit"
     category = "security"
     requires_sudo = False
-
-    def scan(self) -> ScanResult:
-        """Preview what this module would do (audit-only, returns empty)."""
-        return ScanResult.empty()
-
-    def clean(self) -> CleanResult:
-        """Execute cleanup operations (audit-only, returns empty)."""
-        return CleanResult.empty()
 
     def audit(self) -> AuditResult:
         """Run security checks for installed applications."""
@@ -111,11 +97,7 @@ class AppAuditModule(Module):
                 )
 
         # Determine worst status
-        status = "pass"
-        if unsigned_sandboxed:
-            status = "info"
-        if unsigned_privileged:
-            status = "warn"
+        status = worst_severity(findings)
 
         return AuditResult(status=status, findings=findings)
 

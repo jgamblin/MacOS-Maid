@@ -60,42 +60,6 @@ def test_network_clean_handles_flush_error(network_module):
         assert "Failed to flush DNS" in result.errors[0]
 
 
-def test_network_audit_firewall_enabled(network_module):
-    """Test audit reports pass when firewall is enabled."""
-    with (
-        patch.object(network_module, "_check_firewall_enabled", return_value=True),
-        patch.object(network_module, "_get_open_ports", return_value=[]),
-        patch.object(network_module, "_get_vpn_profiles", return_value=[]),
-    ):
-        result = network_module.audit()
-
-        assert isinstance(result, AuditResult)
-        # Status should be pass or info (info for informational findings)
-        assert result.status in ["pass", "info"]
-        # Should have findings for firewall (pass), open ports, and VPN
-        assert len(result.findings) >= 1
-        # Check firewall finding
-        firewall_finding = next(f for f in result.findings if "firewall" in f.title.lower())
-        assert firewall_finding.severity == "pass"
-
-
-def test_network_audit_firewall_disabled(network_module):
-    """Test audit reports fail when firewall is disabled."""
-    with (
-        patch.object(network_module, "_check_firewall_enabled", return_value=False),
-        patch.object(network_module, "_get_open_ports", return_value=[]),
-        patch.object(network_module, "_get_vpn_profiles", return_value=[]),
-    ):
-        result = network_module.audit()
-
-        assert isinstance(result, AuditResult)
-        assert result.status == "fail"
-        # Check firewall finding
-        firewall_finding = next(f for f in result.findings if "firewall" in f.title.lower())
-        assert firewall_finding.severity == "fail"
-        assert "disabled" in firewall_finding.detail.lower()
-
-
 def test_network_audit_with_open_ports(network_module):
     """Test audit reports open ports."""
     open_ports = [
@@ -104,7 +68,6 @@ def test_network_audit_with_open_ports(network_module):
     ]
 
     with (
-        patch.object(network_module, "_check_firewall_enabled", return_value=True),
         patch.object(network_module, "_get_open_ports", return_value=open_ports),
         patch.object(network_module, "_get_vpn_profiles", return_value=[]),
     ):
@@ -123,7 +86,6 @@ def test_network_audit_with_vpn_profiles(network_module):
     vpn_profiles = ["Work VPN", "Home VPN"]
 
     with (
-        patch.object(network_module, "_check_firewall_enabled", return_value=True),
         patch.object(network_module, "_get_open_ports", return_value=[]),
         patch.object(network_module, "_get_vpn_profiles", return_value=vpn_profiles),
     ):
@@ -138,7 +100,6 @@ def test_network_audit_with_vpn_profiles(network_module):
 def test_network_audit_empty_does_not_crash(network_module):
     """Test audit with no findings doesn't crash."""
     with (
-        patch.object(network_module, "_check_firewall_enabled", return_value=True),
         patch.object(network_module, "_get_open_ports", return_value=[]),
         patch.object(network_module, "_get_vpn_profiles", return_value=[]),
     ):

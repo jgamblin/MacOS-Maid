@@ -6,17 +6,12 @@ Never installs tools - only runs them if installed and suggests installation if 
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import subprocess
 
-from macos_maid.modules.base import (
-    AuditResult,
-    CleanResult,
-    Finding,
-    Module,
-    ScanResult,
-)
+from macos_maid.modules.base import AuditResult, Finding, Module, worst_severity
 
 
 class ToolsModule(Module):
@@ -42,14 +37,6 @@ class ToolsModule(Module):
         self.lynis_enabled = lynis_enabled
         self.osquery_enabled = osquery_enabled
         self.knockknock_enabled = knockknock_enabled
-
-    def scan(self) -> ScanResult:
-        """Preview what this module would do (audit-only, returns empty)."""
-        return ScanResult.empty()
-
-    def clean(self) -> CleanResult:
-        """Execute cleanup operations (audit-only, returns empty)."""
-        return CleanResult.empty()
 
     def audit(self) -> AuditResult:
         """Run security checks using external tools."""
@@ -133,16 +120,8 @@ class ToolsModule(Module):
                     )
                 )
 
-        # Determine worst status: fail > warn > info > pass
-        status = "pass"
-        for finding in findings:
-            if finding.severity == "fail":
-                status = "fail"
-                break
-            elif finding.severity == "warn" and status != "fail":
-                status = "warn"
-            elif finding.severity == "info" and status not in ["fail", "warn"]:
-                status = "info"
+        # Determine worst status
+        status = worst_severity(findings)
 
         return AuditResult(status=status, findings=findings)
 
@@ -248,21 +227,15 @@ class ToolsModule(Module):
         """
         findings: list[Finding] = []
 
-        # Check for unsigned processes
+        # Check for non-system processes
         unsigned_query = """
         SELECT name, path, pid
         FROM processes
         WHERE on_disk = 1
-          AND (
-            path NOT LIKE '/System/%'
-            AND path NOT LIKE '/usr/%'
-            AND path NOT LIKE '/Applications/%'
-          )
-          AND NOT EXISTS (
-            SELECT 1 FROM signature
-            WHERE signature.path = processes.path
-              AND signature.signed = 1
-          )
+          AND path NOT LIKE '/System/%'
+          AND path NOT LIKE '/usr/%'
+          AND path NOT LIKE '/Applications/%'
+          AND path NOT LIKE '/Library/%'
         LIMIT 10;
         """
 
@@ -274,20 +247,18 @@ class ToolsModule(Module):
                 timeout=30,
             )
 
-            import json
-
-            unsigned_processes = json.loads(result.stdout)
-            if unsigned_processes:
-                process_names = [p.get("name", "unknown") for p in unsigned_processes[:5]]
+            non_system_processes = json.loads(result.stdout)
+            if non_system_processes:
+                process_names = [p.get("name", "unknown") for p in non_system_processes[:5]]
                 findings.append(
                     Finding(
-                        severity="warn",
-                        title="Unsigned Processes Detected",
+                        severity="info",
+                        title="Non-System Processes Detected",
                         detail=(
-                            f"Found {len(unsigned_processes)} unsigned"
+                            f"Found {len(non_system_processes)} non-system"
                             f" processes: {', '.join(process_names)}"
                         ),
-                        remediation="Investigate and remove suspicious unsigned processes",
+                        remediation="Review non-system processes for suspicious activity",
                     )
                 )
         except Exception:
@@ -310,8 +281,6 @@ class ToolsModule(Module):
                 text=True,
                 timeout=30,
             )
-
-            import json
 
             listeners = json.loads(result.stdout)
             if listeners:
@@ -339,22 +308,15 @@ class ToolsModule(Module):
         Returns:
             List of findings from KnockKnock scan
         """
-        findings: list[Finding] = []
-
-        try:
-            # KnockKnock CLI (if available) or just report that it should be run manually
-            # Since KnockKnock is primarily a GUI app, we'll suggest manual usage
-            findings.append(
-                Finding(
-                    severity="info",
-                    title="KnockKnock Available",
-                    detail=(
-                        "KnockKnock is installed. Run it manually to scan for persistent malware."
-                    ),
-                    remediation=None,
-                )
+        # KnockKnock is primarily a GUI app - suggest manual usage
+        return [
+            Finding(
+                severity="info",
+                title="KnockKnock Available",
+                detail=(
+                    "KnockKnock is installed. Run it to scan for persistent malware,"
+                    " unauthorized launch items, and suspicious startup items."
+                ),
+                remediation="Open KnockKnock and perform a full system scan",
             )
-        except Exception:
-            raise  # Re-raise to be caught by audit()
-
-        return findings
+        ]

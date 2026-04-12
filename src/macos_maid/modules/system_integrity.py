@@ -12,13 +12,7 @@ from __future__ import annotations
 
 import subprocess
 
-from macos_maid.modules.base import (
-    AuditResult,
-    CleanResult,
-    Finding,
-    Module,
-    ScanResult,
-)
+from macos_maid.modules.base import AuditResult, Finding, Module, worst_severity
 
 
 class SystemIntegrityModule(Module):
@@ -27,14 +21,6 @@ class SystemIntegrityModule(Module):
     name = "system_integrity"
     category = "security"
     requires_sudo = False
-
-    def scan(self) -> ScanResult:
-        """Preview what this module would do (audit-only, returns empty)."""
-        return ScanResult.empty()
-
-    def clean(self) -> CleanResult:
-        """Execute cleanup operations (audit-only, returns empty)."""
-        return CleanResult.empty()
 
     def audit(self) -> AuditResult:
         """Run security checks for system integrity settings."""
@@ -46,14 +32,8 @@ class SystemIntegrityModule(Module):
             self._check_firewall(),
         ]
 
-        # Determine worst status: fail > warn > pass
-        status = "pass"
-        for finding in findings:
-            if finding.severity == "fail":
-                status = "fail"
-                break
-            elif finding.severity == "warn":
-                status = "warn"
+        # Determine worst status
+        status = worst_severity(findings)
 
         return AuditResult(status=status, findings=findings)
 

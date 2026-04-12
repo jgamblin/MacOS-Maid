@@ -69,7 +69,7 @@ def test_scan_with_existing_caches(dev_caches_module):
                 return size if exists else 0
         return 0
 
-    with patch.object(dev_caches_module, "_dir_size", side_effect=mock_dir_size):
+    with patch("macos_maid.modules.dev_caches.dir_size", side_effect=mock_dir_size):
         result = dev_caches_module.scan()
 
     assert isinstance(result, ScanResult)
@@ -89,7 +89,7 @@ def test_scan_with_existing_caches(dev_caches_module):
 
 def test_scan_with_no_caches(dev_caches_module):
     """Test scan returns empty result when no caches exist."""
-    with patch.object(dev_caches_module, "_dir_size", return_value=0):
+    with patch("macos_maid.modules.dev_caches.dir_size", return_value=0):
         result = dev_caches_module.scan()
 
     assert isinstance(result, ScanResult)
@@ -124,7 +124,7 @@ def test_clean_removes_and_recreates_caches(dev_caches_module):
     mock_paths_to_check = []
 
     with (
-        patch.object(dev_caches_module, "_dir_size", side_effect=mock_dir_size),
+        patch("macos_maid.modules.dev_caches.dir_size", side_effect=mock_dir_size),
         patch("macos_maid.modules.dev_caches.Path.exists") as mock_exists,
         patch("macos_maid.modules.dev_caches.shutil.rmtree") as mock_rmtree,
         patch("macos_maid.modules.dev_caches.Path.mkdir") as mock_mkdir,
@@ -181,7 +181,7 @@ def test_clean_handles_errors_gracefully(dev_caches_module):
             raise OSError("Permission denied")
 
     with (
-        patch.object(dev_caches_module, "_dir_size", side_effect=mock_dir_size),
+        patch("macos_maid.modules.dev_caches.dir_size", side_effect=mock_dir_size),
         patch("macos_maid.modules.dev_caches.Path.exists", mock_exists),
         patch("macos_maid.modules.dev_caches.shutil.rmtree", side_effect=mock_rmtree),
         patch("macos_maid.modules.dev_caches.Path.mkdir"),
@@ -204,14 +204,16 @@ def test_audit_returns_empty(dev_caches_module):
     assert result.findings == []
 
 
-def test_dir_size_with_existing_directory(dev_caches_module):
-    """Test _dir_size returns correct size for existing directory."""
+def test_dir_size_with_existing_directory():
+    """Test dir_size returns correct size for existing directory."""
+    from macos_maid.utils import dir_size
+
     test_path = Path("/fake/path")
 
-    with patch("macos_maid.modules.dev_caches.subprocess.run") as mock_run:
+    with patch("macos_maid.utils.subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(returncode=0, stdout="1024\t/fake/path\n")
 
-        size = dev_caches_module._dir_size(test_path)
+        size = dir_size(test_path)
 
         assert size == 1024 * 1024  # du -sk returns KB, we convert to bytes
         mock_run.assert_called_once()
@@ -221,25 +223,29 @@ def test_dir_size_with_existing_directory(dev_caches_module):
         assert str(test_path) in args
 
 
-def test_dir_size_with_nonexistent_directory(dev_caches_module):
-    """Test _dir_size returns 0 for nonexistent directory."""
+def test_dir_size_with_nonexistent_directory():
+    """Test dir_size returns 0 for nonexistent directory."""
+    from macos_maid.utils import dir_size
+
     test_path = Path("/fake/nonexistent")
 
-    with patch("macos_maid.modules.dev_caches.subprocess.run") as mock_run:
+    with patch("macos_maid.utils.subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(returncode=1, stdout="")
 
-        size = dev_caches_module._dir_size(test_path)
+        size = dir_size(test_path)
 
         assert size == 0
 
 
-def test_dir_size_with_invalid_output(dev_caches_module):
-    """Test _dir_size returns 0 for invalid du output."""
+def test_dir_size_with_invalid_output():
+    """Test dir_size returns 0 for invalid du output."""
+    from macos_maid.utils import dir_size
+
     test_path = Path("/fake/path")
 
-    with patch("macos_maid.modules.dev_caches.subprocess.run") as mock_run:
+    with patch("macos_maid.utils.subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(returncode=0, stdout="invalid output")
 
-        size = dev_caches_module._dir_size(test_path)
+        size = dir_size(test_path)
 
         assert size == 0
