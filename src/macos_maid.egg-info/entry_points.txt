@@ -1,2 +1,0 @@
-[console_scripts]
-maid = macos_maid.cli:main
