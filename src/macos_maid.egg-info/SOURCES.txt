@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+src/macos_maid/__init__.py
+src/macos_maid.egg-info/PKG-INFO
+src/macos_maid.egg-info/SOURCES.txt
+src/macos_maid.egg-info/dependency_links.txt
+src/macos_maid.egg-info/entry_points.txt
+src/macos_maid.egg-info/requires.txt
+src/macos_maid.egg-info/top_level.txt
+src/macos_maid/modules/__init__.py
