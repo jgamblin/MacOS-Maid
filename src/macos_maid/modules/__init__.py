@@ -14,7 +14,12 @@ def get_all_modules() -> list[Module]:
     modules: list[Module] = []
 
     # Dev modules — imported as they are implemented
-    # from macos_maid.modules.trash import TrashModule
-    # modules.append(TrashModule())
+    from macos_maid.modules.docker import DockerModule
+    from macos_maid.modules.homebrew import HomebrewModule
+    from macos_maid.modules.trash import TrashModule
+
+    modules.append(HomebrewModule())
+    modules.append(DockerModule())
+    modules.append(TrashModule())
 
     return modules
