@@ -62,13 +62,13 @@ class GitModule(Module):
                 timeout=10,
             )
             if result.returncode == 0:
-                # Parse branch names, removing the "*" indicator for current branch
+                # Parse branch names, skipping the current branch (marked with *)
                 branches = []
                 for line in result.stdout.strip().split("\n"):
                     line = line.strip()
-                    if line:
-                        branch = line.lstrip("* ").strip()
-                        branches.append(branch)
+                    if not line or line.startswith("*"):
+                        continue
+                    branches.append(line)
                 return branches
         except (subprocess.TimeoutExpired, subprocess.SubprocessError):
             pass

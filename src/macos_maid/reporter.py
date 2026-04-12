@@ -17,11 +17,12 @@ def format_bytes(num_bytes: int) -> str:
     """Format bytes into human-readable string."""
     if num_bytes == 0:
         return "0 B"
+    value = float(num_bytes)
     for unit in ["B", "KB", "MB", "GB", "TB"]:
-        if abs(num_bytes) < 1024.0:
-            return f"{num_bytes:.1f} {unit}"
-        num_bytes = int(num_bytes / 1024.0)
-    return f"{num_bytes:.1f} PB"
+        if abs(value) < 1024.0:
+            return f"{value:.1f} {unit}"
+        value /= 1024.0
+    return f"{value:.1f} PB"
 
 
 class Reporter:

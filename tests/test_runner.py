@@ -120,10 +120,10 @@ def test_runner_audit():
         audit_log=log,
     )
     results = runner.run_audit()
-    # audit-only module doesn't need sudo
+    # audit-only module included
     assert "fake_audit" in results
-    # sudo module skipped for audit when allow_sudo is False
-    assert "fake_sudo" not in results
+    # sudo module included in audits (audit() is read-only, no sudo needed)
+    assert "fake_sudo" in results
 
 
 def test_runner_filter_by_category():

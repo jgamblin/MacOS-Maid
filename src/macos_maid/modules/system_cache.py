@@ -7,6 +7,7 @@ this and it was dangerous. We only clean safe, user-facing cache and log directo
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -100,14 +101,12 @@ class SystemCacheModule(Module):
                 # Remove contents but keep the directory itself
                 for item in cache_dir.iterdir():
                     try:
-                        if item.is_file():
+                        if item.is_symlink():
+                            continue  # skip symlinks for safety
+                        elif item.is_file():
                             item.unlink()
                         elif item.is_dir():
-                            subprocess.run(
-                                ["rm", "-rf", str(item)],
-                                check=True,
-                                capture_output=True,
-                            )
+                            shutil.rmtree(item)
                     except Exception as e:
                         errors.append(f"Failed to remove {item}: {e}")
 

@@ -65,12 +65,12 @@ class ModuleRunner:
                 clean_result = module.clean()
                 results[module.name] = clean_result
 
-                for item in clean_result.items_cleaned:
+                for i, item in enumerate(clean_result.items_cleaned):
                     self._audit_log.add_action(
                         module=module.name,
                         action="clean",
                         detail=item,
-                        bytes_reclaimed=clean_result.bytes_reclaimed,
+                        bytes_reclaimed=clean_result.bytes_reclaimed if i == 0 else 0,
                     )
 
                 for error in clean_result.errors:
@@ -79,8 +79,11 @@ class ModuleRunner:
         return results
 
     def run_audit(self) -> dict[str, AuditResult]:
-        """Run security audits on all matching modules."""
-        modules = self._filter_modules()
+        """Run security audits on all matching modules.
+
+        Audit methods are read-only, so sudo gating is not applied.
+        """
+        modules = self._filter_modules(require_sudo_check=False)
         results: dict[str, AuditResult] = {}
 
         for module in modules:
