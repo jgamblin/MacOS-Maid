@@ -78,3 +78,30 @@ def test_generate_default_config():
     assert "categories:" in content
     assert "homebrew:" in content
     assert "wifi:" in content
+
+
+def test_config_integration_pipeline():
+    """Test full pipeline: write config, load it, get modules, verify module config.
+
+    This verifies that config values actually reach module constructors.
+    """
+    from macos_maid.modules import get_all_modules
+    from macos_maid.modules.homebrew import HomebrewModule
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+        yaml.dump({"homebrew": {"update": True}}, f)
+        f.flush()
+        config = load_config(Path(f.name))
+
+    # Get all modules with this config
+    modules = get_all_modules(config)
+
+    # Find the HomebrewModule instance
+    homebrew_module = None
+    for mod in modules:
+        if isinstance(mod, HomebrewModule):
+            homebrew_module = mod
+            break
+
+    assert homebrew_module is not None
+    assert homebrew_module.update is True

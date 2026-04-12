@@ -53,3 +53,21 @@ def test_cli_log_no_previous_run():
     result = runner.invoke(main, ["log", "--log-dir", "/nonexistent"])
     assert result.exit_code == 0
     assert "No previous run" in result.output or "not found" in result.output.lower()
+
+
+def test_cli_report_dry_run_nonexistent_config():
+    """Test report command with dry-run and nonexistent config."""
+    runner = CliRunner()
+    result = runner.invoke(main, ["report", "--dry-run", "--config", "/nonexistent/path.yml"])
+    assert result.exit_code == 0
+    # Should show dry-run preview output
+    output_lower = result.output.lower()
+    assert "dry run" in output_lower or "preview" in output_lower or "no config" in output_lower
+
+
+def test_cli_config_command():
+    """Test config command shows not found message for defaults."""
+    runner = CliRunner()
+    result = runner.invoke(main, ["config"])
+    assert result.exit_code == 0
+    assert "not found, using defaults" in result.output

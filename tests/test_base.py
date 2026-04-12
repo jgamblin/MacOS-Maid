@@ -5,6 +5,8 @@ from macos_maid.modules.base import (
     Finding,
     Module,
     ScanResult,
+    Severity,
+    worst_severity,
 )
 
 
@@ -85,3 +87,68 @@ def test_module_subclass():
     assert mod.category == "dev"
     scan = mod.scan()
     assert len(scan.items) == 1
+
+
+def test_severity_from_str_pass():
+    """Test Severity.from_str for pass."""
+    assert Severity.from_str("pass") == Severity.PASS
+
+
+def test_severity_from_str_info():
+    """Test Severity.from_str for info."""
+    assert Severity.from_str("info") == Severity.INFO
+
+
+def test_severity_from_str_warn():
+    """Test Severity.from_str for warn."""
+    assert Severity.from_str("warn") == Severity.WARN
+
+
+def test_severity_from_str_fail():
+    """Test Severity.from_str for fail."""
+    assert Severity.from_str("fail") == Severity.FAIL
+
+
+def test_severity_str_conversion():
+    """Test str(Severity) returns lowercase name."""
+    assert str(Severity.PASS) == "pass"
+    assert str(Severity.INFO) == "info"
+    assert str(Severity.WARN) == "warn"
+    assert str(Severity.FAIL) == "fail"
+
+
+def test_worst_severity_empty_list():
+    """Test worst_severity returns 'pass' for empty list."""
+    result = worst_severity([])
+    assert result == "pass"
+
+
+def test_worst_severity_single_finding():
+    """Test worst_severity with a single finding."""
+    findings = [Finding(severity="warn", title="Test", detail="Detail")]
+    result = worst_severity(findings)
+    assert result == "warn"
+
+
+def test_worst_severity_mixed_findings():
+    """Test worst_severity returns the worst severity from mixed findings."""
+    findings = [
+        Finding(severity="pass", title="Good", detail="All good"),
+        Finding(severity="info", title="Info", detail="FYI"),
+        Finding(severity="warn", title="Warning", detail="Be careful"),
+        Finding(severity="info", title="Info2", detail="Another FYI"),
+    ]
+    result = worst_severity(findings)
+    assert result == "warn"
+
+
+def test_worst_severity_with_fail():
+    """Test worst_severity returns 'fail' when any finding is fail."""
+    findings = [
+        Finding(severity="pass", title="Good", detail="All good"),
+        Finding(severity="warn", title="Warning", detail="Be careful"),
+        Finding(severity="fail", title="Critical", detail="Very bad"),
+        Finding(severity="info", title="Info", detail="FYI"),
+    ]
+    result = worst_severity(findings)
+    assert result == "fail"

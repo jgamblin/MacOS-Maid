@@ -80,3 +80,89 @@ def test_audit_returns_empty(docker_module):
     assert isinstance(result, AuditResult)
     assert result.status == "pass"
     assert result.findings == []
+
+
+def test_parse_reclaimed_space_gb():
+    """Test parsing GB from docker prune output."""
+    output = "Total reclaimed space: 1.5GB"
+    result = DockerModule._parse_reclaimed_space(output)
+    assert result == 1610612736  # 1.5 * 1024^3
+
+
+def test_parse_reclaimed_space_mb():
+    """Test parsing MB from docker prune output."""
+    output = "Total reclaimed space: 500MB"
+    result = DockerModule._parse_reclaimed_space(output)
+    assert result == 524288000  # 500 * 1024^2
+
+
+def test_parse_reclaimed_space_kb():
+    """Test parsing KB from docker prune output."""
+    output = "Total reclaimed space: 1024KB"
+    result = DockerModule._parse_reclaimed_space(output)
+    assert result == 1048576  # 1024 * 1024
+
+
+def test_parse_reclaimed_space_bytes():
+    """Test parsing bytes from docker prune output."""
+    output = "Total reclaimed space: 100B"
+    result = DockerModule._parse_reclaimed_space(output)
+    assert result == 100
+
+
+def test_parse_reclaimed_space_empty():
+    """Test parsing empty string returns 0."""
+    result = DockerModule._parse_reclaimed_space("")
+    assert result == 0
+
+
+def test_parse_reclaimed_space_no_match():
+    """Test parsing random text returns 0."""
+    output = "Some random docker output without space info"
+    result = DockerModule._parse_reclaimed_space(output)
+    assert result == 0
+
+
+def test_parse_reclaimed_space_with_surrounding_text():
+    """Test parsing with other text before/after the reclaimed line."""
+    output = """Deleted Images:
+untagged: sha256:abc123
+untagged: sha256:def456
+
+Total reclaimed space: 2.5GB
+
+Some other output here"""
+    result = DockerModule._parse_reclaimed_space(output)
+    assert result == 2684354560  # 2.5 * 1024^3
+
+
+def test_scan_docker_stopped_containers():
+    """Test scan reports stopped containers when enabled."""
+    docker_module = DockerModule(remove_stopped_containers=True)
+    with (
+        patch.object(docker_module, "_is_docker_running", return_value=True),
+        patch.object(docker_module, "_get_dangling_images", return_value=[]),
+        patch.object(docker_module, "_get_unused_volumes", return_value=[]),
+        patch.object(docker_module, "_get_stopped_containers", return_value=["c1", "c2"]),
+    ):
+        result = docker_module.scan()
+
+        assert isinstance(result, ScanResult)
+        assert len(result.items) == 1
+        assert "2 stopped containers" in result.items[0]
+
+
+def test_clean_all_flags_disabled():
+    """Test clean does nothing when all flags are False."""
+    docker_module = DockerModule(
+        remove_dangling_images=False,
+        remove_unused_volumes=False,
+        remove_stopped_containers=False,
+    )
+    with patch.object(docker_module, "_is_docker_running", return_value=True):
+        result = docker_module.clean()
+
+        assert isinstance(result, CleanResult)
+        assert result.items_cleaned == []
+        assert result.bytes_reclaimed == 0
+        assert result.errors == []
