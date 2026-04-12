@@ -16,11 +16,13 @@ def get_all_modules() -> list[Module]:
     # Dev modules — imported as they are implemented
     from macos_maid.modules.dev_caches import DevCachesModule
     from macos_maid.modules.docker import DockerModule
+    from macos_maid.modules.git import GitModule
     from macos_maid.modules.homebrew import HomebrewModule
     from macos_maid.modules.trash import TrashModule
 
     modules.append(HomebrewModule())
     modules.append(DockerModule())
+    modules.append(GitModule())
     modules.append(TrashModule())
     modules.append(DevCachesModule())
 
