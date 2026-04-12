@@ -24,8 +24,8 @@ class HomebrewModule(Module):
 
     def __init__(
         self,
-        update: bool = False,
-        upgrade: bool = False,
+        update: bool = True,
+        upgrade: bool = True,
         cleanup: bool = True,
     ) -> None:
         """Initialize Homebrew module.

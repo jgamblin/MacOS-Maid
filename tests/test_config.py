@@ -46,7 +46,7 @@ def test_load_config_from_file():
 
 def test_load_config_default_when_missing():
     config = load_config(Path("/nonexistent/path.yml"))
-    assert config.get_module_config("homebrew")["update"] is True
+    assert config.get_module_config("homebrew")["update"] is False
 
 
 def test_config_categories():

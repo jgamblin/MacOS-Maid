@@ -67,7 +67,9 @@ def test_clean_docker_running(docker_module):
         assert len(result.items_cleaned) == 2
         assert "Pruned dangling images" in result.items_cleaned[0]
         assert "Pruned unused volumes" in result.items_cleaned[1]
-        assert result.bytes_reclaimed == 0  # Size calculation not implemented
+        # Verify space calculation: 1.5GB + 500MB = 1.5 * 1024^3 + 500 * 1024^2
+        expected_bytes = int(1.5 * 1024**3) + int(500 * 1024**2)
+        assert result.bytes_reclaimed == expected_bytes
         assert result.errors == []
 
 

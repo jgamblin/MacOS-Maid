@@ -22,13 +22,34 @@ class GitModule(Module):
     category = "dev"
     requires_sudo = False
 
-    def __init__(self) -> None:
-        self.enabled = False
-        self.repos_dir: str | None = None
-        self.prune_remotes = True
-        self.delete_merged = False
-        self.protected_branches = DEFAULT_PROTECTED.copy()
-        self.report_large_repos = True
+    def __init__(
+        self,
+        enabled: bool = False,
+        repos_dir: str | None = None,
+        prune_remotes: bool = True,
+        delete_merged: bool = False,
+        protected_branches: list[str] | None = None,
+        report_large_repos: bool = True,
+    ) -> None:
+        """Initialize Git module.
+
+        Args:
+            enabled: Enable git repository cleanup (default: False)
+            repos_dir: Directory containing git repositories (default: None)
+            prune_remotes: Prune stale remote branches (default: True)
+            delete_merged: Delete branches merged into default branch (default: False)
+            protected_branches: Branch names to never delete
+                (default: ["main", "master", "develop"])
+            report_large_repos: Report repositories over 1GB (default: True)
+        """
+        self.enabled = enabled
+        self.repos_dir = repos_dir
+        self.prune_remotes = prune_remotes
+        self.delete_merged = delete_merged
+        self.protected_branches = (
+            protected_branches if protected_branches is not None else DEFAULT_PROTECTED.copy()
+        )
+        self.report_large_repos = report_large_repos
 
     def _is_protected_branch(self, branch: str, protected: list[str]) -> bool:
         """Check if a branch is protected."""

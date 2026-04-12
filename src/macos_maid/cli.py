@@ -122,7 +122,7 @@ def clean(
     if not dry_run and not yes:
         # Run scan to preview changes
         scan_runner = ModuleRunner(
-            modules=get_all_modules(),
+            modules=get_all_modules(config),
             dry_run=True,
             allow_sudo=allow_sudo,
             audit_log=audit_log,
@@ -236,7 +236,7 @@ def report(
     if not dry_run and not yes:
         # Run scan to preview changes
         scan_runner = ModuleRunner(
-            modules=get_all_modules(),
+            modules=get_all_modules(config),
             dry_run=True,
             allow_sudo=allow_sudo,
             audit_log=audit_log,

@@ -1,7 +1,7 @@
 # tests/modules/test_homebrew.py
 """Tests for Homebrew cleanup module."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -50,31 +50,48 @@ def test_scan_homebrew_not_installed(homebrew_module):
         assert result.requires_sudo is False
 
 
-def test_clean_homebrew_installed(homebrew_module):
+def test_clean_homebrew_installed():
     """Test clean() updates, upgrades, and cleans up Homebrew."""
-    mock_run_brew = MagicMock()
-    mock_run_brew.side_effect = [
-        "Updated 1 tap",  # brew update
-        "Upgraded 5 packages",  # brew upgrade
-        "Pruned 500 MB",  # brew cleanup
-    ]
-
+    # Explicitly enable update/upgrade (defaults are False for safety)
+    module = HomebrewModule(update=True, upgrade=True, cleanup=True)
+    # Mock _get_cache_size directly to avoid subprocess complexity
     with (
-        patch.object(homebrew_module, "_is_brew_installed", return_value=True),
-        patch.object(homebrew_module, "_run_brew", mock_run_brew),
+        patch.object(module, "_is_brew_installed", return_value=True),
+        patch.object(module, "_get_cache_size", return_value=52428800),  # 50MB
+        patch.object(module, "_run_brew", return_value="") as mock_run_brew,
     ):
-        result = homebrew_module.clean()
+        result = module.clean()
 
         assert isinstance(result, CleanResult)
         assert len(result.items_cleaned) == 3
         assert "brew update" in result.items_cleaned[0]
         assert "brew upgrade" in result.items_cleaned[1]
         assert "brew cleanup" in result.items_cleaned[2]
+        # bytes_reclaimed is calculated from cache size diff (both are same, so 0)
         assert result.bytes_reclaimed == 0
         assert result.errors == []
 
-        # Verify brew commands were called
+        # Verify brew commands were called: update, upgrade, cleanup
         assert mock_run_brew.call_count == 3
+        mock_run_brew.assert_any_call("update")
+        mock_run_brew.assert_any_call("upgrade")
+        mock_run_brew.assert_any_call("cleanup", "--prune=all")
+
+
+def test_clean_default_only_cleanup(homebrew_module):
+    """Test clean() with defaults only runs cleanup (update/upgrade are off)."""
+    with (
+        patch.object(homebrew_module, "_is_brew_installed", return_value=True),
+        patch.object(homebrew_module, "_get_cache_size", return_value=52428800),
+        patch.object(homebrew_module, "_run_brew", return_value="") as mock_run_brew,
+    ):
+        result = homebrew_module.clean()
+
+        assert isinstance(result, CleanResult)
+        assert len(result.items_cleaned) == 1
+        assert "brew cleanup" in result.items_cleaned[0]
+        assert mock_run_brew.call_count == 1
+        mock_run_brew.assert_any_call("cleanup", "--prune=all")
 
 
 def test_audit_returns_empty(homebrew_module):

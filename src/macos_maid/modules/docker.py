@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 
@@ -22,6 +23,23 @@ class DockerModule(Module):
     name = "docker"
     category = "dev"
     requires_sudo = False
+
+    def __init__(
+        self,
+        remove_dangling_images: bool = True,
+        remove_unused_volumes: bool = True,
+        remove_stopped_containers: bool = False,
+    ) -> None:
+        """Initialize Docker module.
+
+        Args:
+            remove_dangling_images: Remove dangling (untagged) images (default: True)
+            remove_unused_volumes: Remove unused (dangling) volumes (default: True)
+            remove_stopped_containers: Remove stopped containers (default: False)
+        """
+        self.remove_dangling_images = remove_dangling_images
+        self.remove_unused_volumes = remove_unused_volumes
+        self.remove_stopped_containers = remove_stopped_containers
 
     def _is_docker_running(self) -> bool:
         """Check if Docker is installed and running."""
@@ -71,19 +89,36 @@ class DockerModule(Module):
         except subprocess.CalledProcessError:
             return []
 
+    def _get_stopped_containers(self) -> list[str]:
+        """Get list of stopped container IDs."""
+        try:
+            output = self._run_docker(["ps", "-aq", "--filter", "status=exited"])
+            containers = [line.strip() for line in output.splitlines() if line.strip()]
+            return containers
+        except subprocess.CalledProcessError:
+            return []
+
     def scan(self) -> ScanResult:
         """Preview what Docker cleanup would do."""
         if not self._is_docker_running():
             return ScanResult.empty()
 
-        dangling_images = self._get_dangling_images()
-        unused_volumes = self._get_unused_volumes()
-
         items = []
-        if dangling_images:
-            items.append(f"{len(dangling_images)} dangling images")
-        if unused_volumes:
-            items.append(f"{len(unused_volumes)} unused volumes")
+
+        if self.remove_dangling_images:
+            dangling_images = self._get_dangling_images()
+            if dangling_images:
+                items.append(f"{len(dangling_images)} dangling images")
+
+        if self.remove_unused_volumes:
+            unused_volumes = self._get_unused_volumes()
+            if unused_volumes:
+                items.append(f"{len(unused_volumes)} unused volumes")
+
+        if self.remove_stopped_containers:
+            stopped_containers = self._get_stopped_containers()
+            if stopped_containers:
+                items.append(f"{len(stopped_containers)} stopped containers")
 
         # Size estimation not implemented - would require additional docker commands
         return ScanResult(items=items, bytes_reclaimable=0, requires_sudo=False)
@@ -95,23 +130,61 @@ class DockerModule(Module):
 
         items_cleaned = []
         errors = []
+        bytes_reclaimed = 0
 
-        # Prune dangling images
-        try:
-            self._run_docker(["image", "prune", "-f"])
-            items_cleaned.append("Pruned dangling images")
-        except subprocess.CalledProcessError as e:
-            errors.append(f"Failed to prune images: {e}")
+        # Prune dangling images if enabled
+        if self.remove_dangling_images:
+            try:
+                output = self._run_docker(["image", "prune", "-f"])
+                bytes_reclaimed += self._parse_reclaimed_space(output)
+                items_cleaned.append("Pruned dangling images")
+            except subprocess.CalledProcessError as e:
+                errors.append(f"Failed to prune images: {e}")
 
-        # Prune unused volumes
-        try:
-            self._run_docker(["volume", "prune", "-f"])
-            items_cleaned.append("Pruned unused volumes")
-        except subprocess.CalledProcessError as e:
-            errors.append(f"Failed to prune volumes: {e}")
+        # Prune unused volumes if enabled
+        if self.remove_unused_volumes:
+            try:
+                output = self._run_docker(["volume", "prune", "-f"])
+                bytes_reclaimed += self._parse_reclaimed_space(output)
+                items_cleaned.append("Pruned unused volumes")
+            except subprocess.CalledProcessError as e:
+                errors.append(f"Failed to prune volumes: {e}")
 
-        # Size calculation not implemented - would require parsing prune output
-        return CleanResult(items_cleaned=items_cleaned, bytes_reclaimed=0, errors=errors)
+        # Remove stopped containers if enabled
+        if self.remove_stopped_containers:
+            try:
+                stopped = self._get_stopped_containers()
+                if stopped:
+                    self._run_docker(["rm"] + stopped)
+                    items_cleaned.append(f"Removed {len(stopped)} stopped containers")
+            except subprocess.CalledProcessError as e:
+                errors.append(f"Failed to remove stopped containers: {e}")
+
+        return CleanResult(
+            items_cleaned=items_cleaned,
+            bytes_reclaimed=bytes_reclaimed,
+            errors=errors,
+        )
+
+    @staticmethod
+    def _parse_reclaimed_space(output: str) -> int:
+        """Parse 'Total reclaimed space: X.XXgB' from docker prune output."""
+        match = re.search(
+            r"Total reclaimed space:\s*([\d.]+)\s*([kKmMgGtT]?[bB])",
+            output,
+        )
+        if not match:
+            return 0
+        value = float(match.group(1))
+        unit = match.group(2).upper()
+        multipliers = {
+            "B": 1,
+            "KB": 1024,
+            "MB": 1024**2,
+            "GB": 1024**3,
+            "TB": 1024**4,
+        }
+        return int(value * multipliers.get(unit, 1))
 
     def audit(self) -> AuditResult:
         """Run security checks (not applicable for Docker cleanup)."""

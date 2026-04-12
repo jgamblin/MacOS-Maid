@@ -103,19 +103,22 @@ class MaidConfig:
     @property
     def categories(self) -> list[str]:
         result = self._data.get("categories", ["dev", "security"])
-        assert isinstance(result, list)
+        if not isinstance(result, list):
+            return ["dev", "security"]
         return result
 
     @property
     def report(self) -> dict[str, Any]:
         result = self._data.get("report", DEFAULT_CONFIG["report"])
-        assert isinstance(result, dict)
+        if not isinstance(result, dict):
+            return dict(DEFAULT_CONFIG["report"])
         return result
 
     def get_module_config(self, module_name: str) -> dict[str, Any]:
         """Get config for a specific module, with defaults applied."""
         result = self._data.get(module_name, DEFAULT_CONFIG.get(module_name, {}))
-        assert isinstance(result, dict)
+        if not isinstance(result, dict):
+            return dict(DEFAULT_CONFIG.get(module_name, {}))
         return result
 
 
@@ -136,4 +139,5 @@ def load_config(path: Path | None) -> MaidConfig:
 
 def generate_default_config_yaml() -> str:
     """Generate a commented YAML string with all defaults for `maid init`."""
-    return yaml.dump(DEFAULT_CONFIG, default_flow_style=False, sort_keys=False)
+    result: str = yaml.dump(DEFAULT_CONFIG, default_flow_style=False, sort_keys=False)
+    return result
