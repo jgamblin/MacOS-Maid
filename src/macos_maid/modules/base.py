@@ -2,8 +2,33 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass, field
+from enum import IntEnum
+
+
+class Severity(IntEnum):
+    """Finding severity levels, ordered by increasing urgency."""
+
+    PASS = 0
+    INFO = 1
+    WARN = 2
+    FAIL = 3
+
+    @classmethod
+    def from_str(cls, s: str) -> Severity:
+        return cls[s.upper()]
+
+    def __str__(self) -> str:
+        return self.name.lower()
+
+
+def worst_severity(findings: list[Finding]) -> str:
+    """Return the worst severity string from a list of findings."""
+    if not findings:
+        return "pass"
+    worst = max(Severity.from_str(f.severity) for f in findings)
+    return str(worst)
 
 
 @dataclass
@@ -46,7 +71,7 @@ class Finding:
 class AuditResult:
     """Security findings (read-only, never modifies anything)."""
 
-    status: str  # "pass", "warn", "fail" — worst finding severity
+    status: str  # "pass", "info", "warn", "fail" — worst finding severity
     findings: list[Finding] = field(default_factory=list)
 
     @classmethod
@@ -57,25 +82,23 @@ class AuditResult:
 class Module(ABC):
     """Base class for all MacOS Maid modules.
 
-    Subclasses must set name, category, and requires_sudo as class attributes
-    and implement scan(), clean(), and audit().
+    Subclasses must set name, category, and requires_sudo as class attributes.
+    Implement scan() and clean() for cleanup modules, audit() for security modules.
+    Default implementations return empty results for modules that don't need them.
     """
 
     name: str
     category: str  # "dev", "security", or "both"
     requires_sudo: bool
 
-    @abstractmethod
     def scan(self) -> ScanResult:
         """Preview what this module would do (dry-run)."""
-        ...
+        return ScanResult.empty()
 
-    @abstractmethod
     def clean(self) -> CleanResult:
         """Execute cleanup operations."""
-        ...
+        return CleanResult.empty()
 
-    @abstractmethod
     def audit(self) -> AuditResult:
         """Run security checks (read-only, never modifies anything)."""
-        ...
+        return AuditResult.empty()

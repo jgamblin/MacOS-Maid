@@ -24,15 +24,15 @@ class HomebrewModule(Module):
 
     def __init__(
         self,
-        update: bool = True,
-        upgrade: bool = True,
+        update: bool = False,
+        upgrade: bool = False,
         cleanup: bool = True,
     ) -> None:
         """Initialize Homebrew module.
 
         Args:
-            update: Run brew update (default: True)
-            upgrade: Run brew upgrade (default: True)
+            update: Run brew update (default: False, installs new software)
+            upgrade: Run brew upgrade (default: False, installs new software)
             cleanup: Run brew cleanup (default: True)
         """
         self.update = update

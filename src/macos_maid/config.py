@@ -15,8 +15,8 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "output": "terminal",
     },
     "homebrew": {
-        "update": True,
-        "upgrade": True,
+        "update": False,
+        "upgrade": False,
         "cleanup": True,
         "audit_casks": True,
         "check_untapped": True,

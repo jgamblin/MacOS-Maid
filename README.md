@@ -36,32 +36,33 @@ maid clean --dry-run
 ## Example Output
 
 ```
+$ maid clean --dry-run
+
 MacOS Maid Report — 2026-04-12
 macOS Sequoia 15.4 | Apple M3 Pro | APFS
-════════════════════════════════════════════
+============================================
 
-Cleanup
-───────
-Disk: 12.4 GB reclaimed
-Homebrew: 12 packages updated, 3.1 GB cache cleaned
-Docker: 8 dangling images removed (6.4 GB)
-Dev caches: 2.1 GB (pip: 800 MB, Xcode: 1.3 GB)
-Trash: 890 MB emptied
-WiFi: 12 stale networks removed
+Preview (DRY RUN — no changes will be made)
+--------------------------------------------
+  trash: Trash contains 890.0 MB
+  homebrew: 3.1 GB cache
+  dev_caches: pip: 800.0 MB
+  dev_caches: npm: 1.3 GB
+
+Estimated reclaimable: 5.2 GB
+
+$ maid audit
 
 Security Audit
-──────────────
-SIP: PASS          FileVault: PASS
-Gatekeeper: PASS   Firewall: FAIL — disabled
-XProtect: PASS
-
-Apps: 3 unsigned (2 with elevated permissions)
-Launch daemons: 2 non-Apple
-TCC: Screen recording: 4 apps, Full disk access: 6 apps
-Network: 3 open ports, 1 VPN profile
-
-Duration: 47 seconds
-Full log: ~/.maid/last_run.json
+--------------
+  PASS: System Integrity Protection — SIP is enabled
+  PASS: FileVault Encryption — FileVault is on
+  PASS: Gatekeeper — Gatekeeper is enabled
+  PASS: XProtect — XProtect is installed
+  FAIL: Firewall — Firewall is disabled
+    Fix: Enable firewall in System Preferences > Security & Privacy > Firewall
+  INFO: Unsigned Application — SomeApp.app is unsigned but appears to be sandboxed
+  INFO: Non-Apple Launch Item — com.example.daemon at /Library/LaunchDaemons/...
 ```
 
 ## Installation
@@ -319,8 +320,8 @@ Contributions are welcome! To get started:
 
 4. **Add a new module**:
    - Create a new file in `src/macos_maid/modules/`
-   - Inherit from `BaseModule`
-   - Implement `run_clean()` and/or `run_audit()`
+   - Inherit from `Module` base class
+   - Implement `scan()`, `clean()`, and/or `audit()`
    - Register in `modules/__init__.py`
 
 ## License
