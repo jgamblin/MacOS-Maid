@@ -20,10 +20,16 @@ def get_all_modules() -> list[Module]:
     from macos_maid.modules.homebrew import HomebrewModule
     from macos_maid.modules.trash import TrashModule
 
+    # Security modules
+    from macos_maid.modules.system_integrity import SystemIntegrityModule
+    from macos_maid.modules.wifi import WiFiModule
+
     modules.append(HomebrewModule())
     modules.append(DockerModule())
     modules.append(GitModule())
     modules.append(TrashModule())
     modules.append(DevCachesModule())
+    modules.append(SystemIntegrityModule())
+    modules.append(WiFiModule())
 
     return modules
