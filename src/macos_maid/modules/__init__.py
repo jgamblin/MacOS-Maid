@@ -21,6 +21,8 @@ def get_all_modules() -> list[Module]:
     from macos_maid.modules.trash import TrashModule
 
     # Security modules
+    from macos_maid.modules.app_audit import AppAuditModule
+    from macos_maid.modules.launch_audit import LaunchAuditModule
     from macos_maid.modules.network import NetworkModule
     from macos_maid.modules.system_integrity import SystemIntegrityModule
     from macos_maid.modules.wifi import WiFiModule
@@ -30,6 +32,8 @@ def get_all_modules() -> list[Module]:
     modules.append(GitModule())
     modules.append(TrashModule())
     modules.append(DevCachesModule())
+    modules.append(AppAuditModule())
+    modules.append(LaunchAuditModule())
     modules.append(NetworkModule())
     modules.append(SystemIntegrityModule())
     modules.append(WiFiModule())
