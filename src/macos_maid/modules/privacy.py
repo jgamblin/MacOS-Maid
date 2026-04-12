@@ -101,7 +101,7 @@ class PrivacyModule(Module):
 
             conn.close()
 
-        except Exception:
+        except (sqlite3.Error, OSError):
             # If we can't read the TCC database, return empty dict
             # This can happen if the database is locked or inaccessible
             return {}

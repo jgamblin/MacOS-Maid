@@ -40,14 +40,20 @@ def test_scan_with_existing_dirs(mock_dir_size):
     # Mock dir_size to return different sizes based on exact path
     def size_side_effect(path):
         path_str = str(path)
-        if path_str.endswith("Library/Caches"):
-            return 1024 * 1024 * 500  # 500 MB
+        # Each allowlisted cache dir gets 100 MB
+        if "com.apple.dt.Xcode" in path_str:
+            return 1024 * 1024 * 100
+        elif "Homebrew" in path_str and "Caches" in path_str:
+            return 1024 * 1024 * 100
+        elif path_str.endswith("pip"):
+            return 1024 * 1024 * 100
+        elif path_str.endswith("yarn"):
+            return 1024 * 1024 * 100
+        elif "com.apple.nsurlsessiond" in path_str:
+            return 1024 * 1024 * 100
         elif path_str == "/Library/Logs/DiagnosticReports":
             return 1024 * 1024 * 10  # 10 MB
-        elif (
-            "Library/Logs/DiagnosticReports" in path_str
-            and "Library/Logs/DiagnosticReports" in path_str
-        ):
+        elif "Library/Logs/DiagnosticReports" in path_str:
             return 1024 * 1024 * 10  # 10 MB for user diagnostic reports too
         return 0
 
@@ -59,15 +65,15 @@ def test_scan_with_existing_dirs(mock_dir_size):
     with patch("pathlib.Path.exists", return_value=True):
         result = module.scan()
 
-    # Should have items for cache and log dirs
-    assert len(result.items) == 3  # Cache + 2 log dirs
-    # 500 MB + 10 MB + 10 MB = 520 MB
+    # Should have items for cache allowlist (5) and log dirs (2)
+    assert len(result.items) == 7  # 5 cache dirs + 2 log dirs
+    # 5 * 100 MB + 10 MB + 10 MB = 520 MB
     assert result.bytes_reclaimable == 1024 * 1024 * 520
     assert result.requires_sudo is True
 
     # Check that sizes are formatted in items
     items_str = " ".join(result.items)
-    assert "500.0 MB" in items_str or "Caches" in items_str
+    assert "100.0 MB" in items_str or "Caches" in items_str
 
 
 @patch("macos_maid.modules.system_cache.dir_size")
@@ -92,13 +98,24 @@ def test_scan_with_nonexistent_dirs(mock_dir_size):
 def test_clean_success(mock_dir_size, mock_run):
     """Test clean removes cache contents and log files."""
     # Return different sizes: before and after for each directory
+    # We now have 5 cache dirs + 2 log dirs = 7 directories
     size_values = [
-        1024 * 1024 * 100,  # Cache dir before
-        0,  # Cache dir after
-        1024 * 1024 * 10,  # First log dir before
-        0,  # First log dir after
-        1024 * 1024 * 5,  # Second log dir before
-        0,  # Second log dir after
+        # 5 cache dirs (before, after)
+        1024 * 1024 * 100,  # Xcode cache before
+        0,  # Xcode cache after
+        1024 * 1024 * 10,  # Homebrew cache before
+        0,  # Homebrew cache after
+        1024 * 1024 * 5,  # pip cache before
+        0,  # pip cache after
+        1024 * 1024 * 5,  # yarn cache before
+        0,  # yarn cache after
+        1024 * 1024 * 5,  # nsurlsessiond cache before
+        0,  # nsurlsessiond cache after
+        # 2 log dirs (before, after)
+        1024 * 1024 * 10,  # System log dir before
+        0,  # System log dir after
+        1024 * 1024 * 5,  # User log dir before
+        0,  # User log dir after
     ]
     mock_dir_size.side_effect = size_values
 
@@ -114,6 +131,7 @@ def test_clean_success(mock_dir_size, mock_run):
             mock_file.name = "some-file"
             mock_file.is_file.return_value = True
             mock_file.is_dir.return_value = False
+            mock_file.is_symlink.return_value = False
             mock_iterdir.return_value = [mock_file]
 
             result = module.clean()

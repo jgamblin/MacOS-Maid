@@ -66,6 +66,14 @@ class Finding:
     detail: str
     remediation: str | None = None
 
+    def __post_init__(self) -> None:
+        """Validate severity is one of the allowed values."""
+        allowed = {"pass", "info", "warn", "fail"}
+        if self.severity not in allowed:
+            raise ValueError(
+                f"Invalid severity '{self.severity}'. Must be one of: {', '.join(sorted(allowed))}"
+            )
+
 
 @dataclass
 class AuditResult:

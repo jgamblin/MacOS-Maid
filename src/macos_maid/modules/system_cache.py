@@ -19,22 +19,27 @@ class SystemCacheModule(Module):
     """Clean system caches and diagnostic logs safely.
 
     This module cleans:
-    - User Library caches (~/Library/Caches)
+    - Specific known-safe cache directories (Xcode, Homebrew, pip, yarn, nsurlsessiond)
     - System diagnostic reports (/Library/Logs/DiagnosticReports)
     - User diagnostic reports (~/Library/Logs/DiagnosticReports)
 
     SAFETY: We NEVER touch /private/var/folders which contains system-critical
-    temporary files. The original macos-maid script cleaned this directory and
-    it was extremely dangerous.
+    temporary files. We also use an explicit allowlist for cache directories
+    to avoid destroying app caches that don't regenerate gracefully.
     """
 
     name = "system_cache"
     category = "both"
     requires_sudo = True  # System logs need sudo
 
-    # Safe directories to clean
+    # Safe directories to clean - explicit allowlist of known-safe cache subdirectories
+    # This prevents wiping app caches that don't regenerate gracefully (Outlook, Teams, browsers)
     SAFE_CACHE_DIRS = [
-        Path.home() / "Library" / "Caches",
+        Path.home() / "Library" / "Caches" / "com.apple.dt.Xcode",
+        Path.home() / "Library" / "Caches" / "Homebrew",
+        Path.home() / "Library" / "Caches" / "pip",
+        Path.home() / "Library" / "Caches" / "yarn",
+        Path.home() / "Library" / "Caches" / "com.apple.nsurlsessiond",
     ]
 
     SAFE_LOG_DIRS = [

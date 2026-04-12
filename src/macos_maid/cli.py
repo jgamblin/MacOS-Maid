@@ -14,13 +14,56 @@ from macos_maid import __version__
 from macos_maid.audit_log import AuditLog
 from macos_maid.config import generate_default_config_yaml, load_config
 from macos_maid.modules import get_all_modules
-from macos_maid.modules.base import CleanResult, ScanResult
+from macos_maid.modules.base import CleanResult, Module, ScanResult
 from macos_maid.reporter import Reporter
 from macos_maid.runner import ModuleRunner
 from macos_maid.system import detect_platform
 
 DEFAULT_CONFIG_PATH = Path.home() / ".maid.yml"
 DEFAULT_LOG_DIR = Path.home() / ".maid"
+
+
+def _warn_if_sudo_needs_password(allow_sudo: bool) -> None:
+    """Warn the user if sudo requires a password.
+
+    Args:
+        allow_sudo: Whether sudo operations are allowed
+    """
+    if allow_sudo:
+        result = subprocess.run(["sudo", "-n", "true"], capture_output=True)
+        if result.returncode != 0:
+            click.echo("Warning: sudo requires a password. You may be prompted.")
+
+
+def _build_runner(
+    modules: list[Module],
+    dry_run: bool,
+    allow_sudo: bool,
+    audit_log: AuditLog,
+    categories: list[str] | None = None,
+    module_names: list[str] | None = None,
+) -> ModuleRunner:
+    """Build a ModuleRunner with the given configuration.
+
+    Args:
+        modules: List of modules to run
+        dry_run: Whether to run in dry-run mode
+        allow_sudo: Whether to allow sudo operations
+        audit_log: Audit log instance
+        categories: Optional list of categories to filter by
+        module_names: Optional list of module names to filter by
+
+    Returns:
+        Configured ModuleRunner instance
+    """
+    return ModuleRunner(
+        modules=modules,
+        dry_run=dry_run,
+        allow_sudo=allow_sudo,
+        audit_log=audit_log,
+        categories=categories,
+        module_names=module_names,
+    )
 
 
 @click.group()
@@ -86,10 +129,7 @@ def clean(
         dry_run = True
 
     # Validate sudo access upfront if needed
-    if allow_sudo:
-        result = subprocess.run(["sudo", "-n", "true"], capture_output=True)
-        if result.returncode != 0:
-            click.echo("Warning: sudo requires a password. You may be prompted.")
+    _warn_if_sudo_needs_password(allow_sudo)
 
     platform = detect_platform()
     output_fmt = output or config.report.get("output", "terminal")
@@ -104,7 +144,7 @@ def clean(
 
     parsed_modules = module_names.split(",") if module_names else None
 
-    runner = ModuleRunner(
+    runner = _build_runner(
         modules=get_all_modules(config),
         dry_run=dry_run,
         allow_sudo=allow_sudo,
@@ -121,7 +161,7 @@ def clean(
     # If not dry-run and not --yes, show preview and prompt for confirmation
     if not dry_run and not yes:
         # Run scan to preview changes
-        scan_runner = ModuleRunner(
+        scan_runner = _build_runner(
             modules=get_all_modules(config),
             dry_run=True,
             allow_sudo=allow_sudo,
@@ -162,17 +202,14 @@ def audit(
     config = load_config(cfg_path if cfg_path.exists() else None)
 
     # Validate sudo access upfront if needed
-    if allow_sudo:
-        result = subprocess.run(["sudo", "-n", "true"], capture_output=True)
-        if result.returncode != 0:
-            click.echo("Warning: sudo requires a password. You may be prompted.")
+    _warn_if_sudo_needs_password(allow_sudo)
 
     platform = detect_platform()
     output_fmt = output or config.report.get("output", "terminal")
     reporter = Reporter(platform=platform, output_format=output_fmt)
     audit_log = AuditLog()
 
-    runner = ModuleRunner(
+    runner = _build_runner(
         modules=get_all_modules(config),
         dry_run=False,
         allow_sudo=allow_sudo,
@@ -215,17 +252,14 @@ def report(
         dry_run = True
 
     # Validate sudo access upfront if needed
-    if allow_sudo:
-        result = subprocess.run(["sudo", "-n", "true"], capture_output=True)
-        if result.returncode != 0:
-            click.echo("Warning: sudo requires a password. You may be prompted.")
+    _warn_if_sudo_needs_password(allow_sudo)
 
     platform = detect_platform()
     output_fmt = output or config.report.get("output", "terminal")
     reporter = Reporter(platform=platform, output_format=output_fmt)
     audit_log = AuditLog()
 
-    runner = ModuleRunner(
+    runner = _build_runner(
         modules=get_all_modules(config),
         dry_run=dry_run,
         allow_sudo=allow_sudo,
@@ -235,7 +269,7 @@ def report(
     # If not dry-run and not --yes, show preview and prompt for confirmation
     if not dry_run and not yes:
         # Run scan to preview changes
-        scan_runner = ModuleRunner(
+        scan_runner = _build_runner(
             modules=get_all_modules(config),
             dry_run=True,
             allow_sudo=allow_sudo,

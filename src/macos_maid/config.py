@@ -15,6 +15,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "output": "terminal",
     },
     "homebrew": {
+        "enabled": True,
         "update": False,
         "upgrade": False,
         "cleanup": True,
@@ -22,11 +23,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "check_untapped": True,
     },
     "docker": {
+        "enabled": True,
         "remove_dangling_images": True,
         "remove_unused_volumes": True,
         "remove_stopped_containers": False,
     },
     "dev_caches": {
+        "enabled": True,
         "clean": ["pip", "npm", "cargo", "gradle", "cocoapods", "xcode_derived"],
     },
     "git": {
@@ -38,19 +41,23 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "report_large_repos": True,
     },
     "trash": {
+        "enabled": True,
         "empty": True,
     },
     "wifi": {
+        "enabled": True,
         "keep_days": 90,
         "keep_ssids": [],
     },
     "network": {
+        "enabled": True,
         "flush_dns": True,
         "check_open_ports": True,
         "audit_vpn_profiles": True,
         "check_firewall": True,
     },
     "privacy": {
+        "enabled": True,
         "clear_recent_items": True,
         "report_old_downloads": True,
         "downloads_move_to_trash": False,
@@ -58,24 +65,29 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "audit_tcc_permissions": True,
     },
     "system_integrity": {
+        "enabled": True,
         "check_sip": True,
         "check_filevault": True,
         "check_gatekeeper": True,
         "check_xprotect": True,
     },
     "app_audit": {
+        "enabled": True,
         "check_unsigned": True,
     },
     "launch_audit": {
+        "enabled": True,
         "audit_launch_daemons": True,
         "audit_launch_agents": True,
         "flag_non_apple": True,
     },
     "system_cache": {
+        "enabled": True,
         "clean_system_logs": True,
         "clean_user_caches": True,
     },
     "tools": {
+        "enabled": True,
         "lynis": True,
         "osquery": True,
         "knockknock": False,

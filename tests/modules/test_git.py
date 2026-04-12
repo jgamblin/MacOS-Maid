@@ -171,7 +171,9 @@ def test_git_reports_large_repos(git_module):
         patch.object(git_module, "_find_repos", return_value=[repo_path]),
         patch.object(git_module, "_get_default_branch", return_value="main"),
         patch.object(git_module, "_get_merged_branches", return_value=[]),
-        patch.object(git_module, "_get_repo_size", return_value=2 * 1024 * 1024),  # 2GB
+        patch.object(
+            git_module, "_get_repo_size", return_value=2 * 1024 * 1024 * 1024
+        ),  # 2GB in bytes
     ):
         result = git_module.scan()
 

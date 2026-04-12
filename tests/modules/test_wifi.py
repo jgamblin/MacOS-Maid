@@ -1,6 +1,7 @@
 # tests/modules/test_wifi.py
 """Tests for WiFi cleanup module."""
 
+import subprocess
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
@@ -87,6 +88,26 @@ def test_should_remove_old():
     )
 
 
+def test_should_keep_when_no_timestamp():
+    """SAFETY: Networks with unknown join time must be KEPT, not deleted.
+
+    networksetup doesn't expose timestamps, so last_joined is always None.
+    Defaulting to delete would nuke all saved WiFi networks.
+    """
+    module = WiFiModule(keep_days=30, keep_ssids=[], interface="en0")
+
+    assert (
+        module._should_keep_network(
+            ssid="UnknownNetwork",
+            last_joined=None,
+            keep_days=30,
+            keep_ssids=[],
+            current_ssid="CurrentNetwork",
+        )
+        is True
+    )
+
+
 @patch("macos_maid.modules.wifi.WiFiModule._get_current_ssid")
 @patch("macos_maid.modules.wifi.WiFiModule._get_known_networks")
 def test_wifi_scan_empty_when_no_stale(mock_get_networks, mock_get_current):
@@ -104,19 +125,21 @@ def test_wifi_scan_empty_when_no_stale(mock_get_networks, mock_get_current):
 
 @patch("macos_maid.modules.wifi.WiFiModule._get_current_ssid")
 @patch("macos_maid.modules.wifi.WiFiModule._get_known_networks")
-def test_wifi_scan_finds_stale_networks(mock_get_networks, mock_get_current):
-    """Test scan finds networks that should be removed."""
+def test_wifi_scan_keeps_all_without_timestamps(mock_get_networks, mock_get_current):
+    """SAFETY: Without timestamps, scan should remove nothing.
+
+    networksetup doesn't expose join timestamps, so all networks have
+    last_joined=None. The safe default is to keep them all.
+    """
     mock_get_current.return_value = "CurrentWiFi"
     mock_get_networks.return_value = ["CurrentWiFi", "HomeWiFi", "CoffeeShop", "AirportWiFi"]
 
     module = WiFiModule(keep_days=90, keep_ssids=["HomeWiFi"], interface="en0")
     result = module.scan()
 
-    # Should find CoffeeShop and AirportWiFi as removable
-    assert len(result.items) == 2
-    assert any("CoffeeShop" in item for item in result.items)
-    assert any("AirportWiFi" in item for item in result.items)
-    assert result.bytes_reclaimable == 0  # WiFi networks don't take disk space
+    # No networks removed — timestamps unavailable, so all are kept
+    assert len(result.items) == 0
+    assert result.bytes_reclaimable == 0
     assert result.requires_sudo is True
 
 
@@ -127,46 +150,47 @@ def test_wifi_scan_never_removes_current(mock_get_networks, mock_get_current):
     mock_get_current.return_value = "CurrentWiFi"
     mock_get_networks.return_value = ["CurrentWiFi", "OldNetwork"]
 
-    # Even with keep_days=0 and empty allowlist, current network is kept
+    # Even with keep_days=0 and empty allowlist, nothing is removed
+    # because networksetup can't provide timestamps
     module = WiFiModule(keep_days=0, keep_ssids=[], interface="en0")
     result = module.scan()
 
-    # Only OldNetwork should be marked for removal
-    assert len(result.items) == 1
-    assert "OldNetwork" in result.items[0]
-    assert "CurrentWiFi" not in result.items[0]
+    assert len(result.items) == 0
 
 
 @patch("macos_maid.modules.wifi.WiFiModule._remove_network")
 @patch("macos_maid.modules.wifi.WiFiModule._get_current_ssid")
 @patch("macos_maid.modules.wifi.WiFiModule._get_known_networks")
-def test_wifi_clean_success(mock_get_networks, mock_get_current, mock_remove):
-    """Test clean removes stale networks successfully."""
+def test_wifi_clean_keeps_all_without_timestamps(mock_get_networks, mock_get_current, mock_remove):
+    """SAFETY: Clean removes nothing when timestamps are unavailable."""
     mock_get_current.return_value = "CurrentWiFi"
     mock_get_networks.return_value = ["CurrentWiFi", "HomeWiFi", "CoffeeShop"]
-    mock_remove.return_value = None  # Success
+    mock_remove.return_value = None
 
     module = WiFiModule(keep_days=90, keep_ssids=["HomeWiFi"], interface="en0")
     result = module.clean()
 
-    assert len(result.items_cleaned) == 1
-    assert "CoffeeShop" in result.items_cleaned[0]
+    # Nothing removed — no timestamps available
+    assert len(result.items_cleaned) == 0
     assert result.bytes_reclaimed == 0
     assert len(result.errors) == 0
-    mock_remove.assert_called_once_with("CoffeeShop", "en0")
+    mock_remove.assert_not_called()
 
 
 @patch("macos_maid.modules.wifi.WiFiModule._remove_network")
 @patch("macos_maid.modules.wifi.WiFiModule._get_current_ssid")
 @patch("macos_maid.modules.wifi.WiFiModule._get_known_networks")
 def test_wifi_clean_error(mock_get_networks, mock_get_current, mock_remove):
-    """Test clean handles errors gracefully."""
+    """Test clean handles errors gracefully when a removal fails."""
     mock_get_current.return_value = "CurrentWiFi"
     mock_get_networks.return_value = ["CurrentWiFi", "CoffeeShop"]
-    mock_remove.side_effect = Exception("Permission denied")
 
-    module = WiFiModule(keep_days=90, keep_ssids=[], interface="en0")
-    result = module.clean()
+    # Patch _should_keep_network to simulate a scenario where removal is attempted
+    with patch.object(WiFiModule, "_should_keep_network", side_effect=[True, False]):
+        mock_remove.side_effect = Exception("Permission denied")
+
+        module = WiFiModule(keep_days=90, keep_ssids=[], interface="en0")
+        result = module.clean()
 
     assert len(result.items_cleaned) == 0
     assert result.bytes_reclaimed == 0
@@ -229,7 +253,7 @@ def test_get_current_ssid_not_connected(mock_run):
 @patch("macos_maid.modules.wifi.subprocess.run")
 def test_get_current_ssid_error(mock_run):
     """Test getting current SSID handles errors."""
-    mock_run.side_effect = Exception("Command failed")
+    mock_run.side_effect = subprocess.SubprocessError("Command failed")
 
     module = WiFiModule(interface="en0")
     ssid = module._get_current_ssid("en0")
@@ -268,7 +292,7 @@ def test_get_known_networks_empty(mock_run):
 @patch("macos_maid.modules.wifi.subprocess.run")
 def test_get_known_networks_error(mock_run):
     """Test getting known networks handles errors."""
-    mock_run.side_effect = Exception("Command failed")
+    mock_run.side_effect = subprocess.SubprocessError("Command failed")
 
     module = WiFiModule(interface="en0")
     networks = module._get_known_networks("en0")

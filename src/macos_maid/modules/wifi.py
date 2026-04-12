@@ -69,8 +69,12 @@ class WiFiModule(Module):
             days_ago = (datetime.now() - last_joined).days
             if days_ago <= keep_days:
                 return True
+            return False
 
-        return False
+        # SAFETY: When timestamp is unavailable (e.g., networksetup doesn't
+        # expose join dates), default to KEEP. Never delete a network just
+        # because we can't determine when it was last used.
+        return True
 
     def _get_current_ssid(self, interface: str) -> str | None:
         """Get the currently connected SSID.
@@ -99,7 +103,7 @@ class WiFiModule(Module):
             # Not connected
             return None
 
-        except Exception:
+        except (subprocess.SubprocessError, subprocess.TimeoutExpired, OSError):
             return None
 
     def _get_known_networks(self, interface: str) -> list[str]:
@@ -131,7 +135,7 @@ class WiFiModule(Module):
 
             return networks
 
-        except Exception:
+        except (subprocess.SubprocessError, subprocess.TimeoutExpired, OSError):
             return []
 
     def _remove_network(self, ssid: str, interface: str) -> None:

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from macos_maid.modules.base import AuditResult, CleanResult, Module, ScanResult
 from macos_maid.reporter import format_bytes
+from macos_maid.utils import dir_size
 
 DEFAULT_PROTECTED = ["main", "master", "develop"]
 
@@ -96,21 +97,8 @@ class GitModule(Module):
         return []
 
     def _get_repo_size(self, repo_path: Path) -> int:
-        """Get repository size in KB using du -sk."""
-        try:
-            result = subprocess.run(
-                ["du", "-sk", str(repo_path)],
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
-            if result.returncode == 0:
-                # Output is like "12345\t/path/to/repo"
-                size_kb = int(result.stdout.split()[0])
-                return size_kb
-        except (subprocess.TimeoutExpired, subprocess.SubprocessError, ValueError):
-            pass
-        return 0
+        """Get repository size in bytes using dir_size utility."""
+        return dir_size(repo_path)
 
     def _run_git(self, repo_path: Path, args: list[str]) -> str:
         """Run a git command in a repository."""
@@ -172,9 +160,8 @@ class GitModule(Module):
 
             # Report large repos if enabled
             if self.report_large_repos:
-                size_kb = self._get_repo_size(repo)
-                if size_kb > 1024 * 1024:  # > 1GB
-                    size_bytes = size_kb * 1024
+                size_bytes = self._get_repo_size(repo)
+                if size_bytes > 1024 * 1024 * 1024:  # > 1GB
                     items.append(f"{repo.name}: large repo ({format_bytes(size_bytes)})")
 
         return ScanResult(items=items, bytes_reclaimable=0, requires_sudo=False)
