@@ -47,6 +47,7 @@ class DevCachesModule(Module):
                 capture_output=True,
                 text=True,
                 check=False,
+                timeout=30,
             )
 
             if result.returncode != 0:
@@ -91,6 +92,11 @@ class DevCachesModule(Module):
             size = self._dir_size(cache_path)
 
             if not cache_path.exists():
+                continue
+
+            # SAFETY: Never follow symlinks
+            if cache_path.is_symlink():
+                errors.append(f"Skipping symlink: {cache_path}")
                 continue
 
             try:

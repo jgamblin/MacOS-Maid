@@ -4,7 +4,14 @@ from __future__ import annotations
 
 import subprocess
 
-from macos_maid.modules.base import AuditResult, CleanResult, Finding, Module, ScanResult
+from macos_maid.modules.base import (
+    AuditResult,
+    CleanResult,
+    Finding,
+    Module,
+    ScanResult,
+    worst_severity,
+)
 
 
 class NetworkModule(Module):
@@ -22,6 +29,7 @@ class NetworkModule(Module):
             capture_output=True,
             text=True,
             check=True,
+            timeout=10,
         )
         # Restart mDNSResponder
         subprocess.run(
@@ -29,6 +37,7 @@ class NetworkModule(Module):
             capture_output=True,
             text=True,
             check=True,
+            timeout=10,
         )
 
     def _get_open_ports(self) -> list[tuple[str, str]]:
@@ -43,6 +52,7 @@ class NetworkModule(Module):
                 capture_output=True,
                 text=True,
                 check=True,
+                timeout=15,
             )
 
             ports = []
@@ -65,24 +75,6 @@ class NetworkModule(Module):
         except (subprocess.CalledProcessError, IndexError):
             return []
 
-    def _check_firewall_enabled(self) -> bool:
-        """Check if macOS firewall is enabled.
-
-        Returns:
-            True if firewall is enabled, False otherwise
-        """
-        try:
-            result = subprocess.run(
-                ["/usr/libexec/ApplicationFirewall/socketfilterfw", "--getglobalstate"],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            # "Firewall is enabled. (State = 1)" or "...disabled. (State = 0)"
-            return "enabled" in result.stdout.lower()
-        except subprocess.CalledProcessError:
-            return False
-
     def _get_vpn_profiles(self) -> list[str]:
         """Get list of configured VPN profiles.
 
@@ -95,6 +87,7 @@ class NetworkModule(Module):
                 capture_output=True,
                 text=True,
                 check=True,
+                timeout=5,
             )
 
             profiles = []
@@ -139,29 +132,6 @@ class NetworkModule(Module):
     def audit(self) -> AuditResult:
         """Run network security checks."""
         findings = []
-
-        # Check firewall status
-        firewall_enabled = self._check_firewall_enabled()
-        if firewall_enabled:
-            findings.append(
-                Finding(
-                    severity="pass",
-                    title="Firewall Status",
-                    detail="macOS Application Firewall is enabled",
-                    remediation=None,
-                )
-            )
-        else:
-            findings.append(
-                Finding(
-                    severity="fail",
-                    title="Firewall Status",
-                    detail="macOS Application Firewall is disabled",
-                    remediation=(
-                        "Enable firewall in System Preferences > Security & Privacy > Firewall"
-                    ),
-                )
-            )
 
         # Check open ports
         open_ports = self._get_open_ports()
@@ -211,11 +181,6 @@ class NetworkModule(Module):
             )
 
         # Determine overall status (worst severity)
-        severity_order = {"pass": 0, "info": 1, "warn": 2, "fail": 3}
-        worst_severity = max(
-            (f.severity for f in findings),
-            key=lambda s: severity_order.get(s, 0),
-            default="pass",
-        )
+        status = worst_severity(findings)
 
-        return AuditResult(status=worst_severity, findings=findings)
+        return AuditResult(status=status, findings=findings)

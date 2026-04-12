@@ -8,7 +8,14 @@ import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from macos_maid.modules.base import AuditResult, CleanResult, Finding, Module, ScanResult
+from macos_maid.modules.base import (
+    AuditResult,
+    CleanResult,
+    Finding,
+    Module,
+    ScanResult,
+    worst_severity,
+)
 
 # TCC service name mappings to human-readable names
 TCC_SERVICE_NAMES = {
@@ -118,6 +125,7 @@ class PrivacyModule(Module):
             capture_output=True,
             text=True,
             check=True,
+            timeout=10,
         )
 
     def _get_old_downloads(self) -> list[tuple[Path, int]]:
@@ -253,11 +261,6 @@ class PrivacyModule(Module):
                 )
             )
 
-        severity_order = {"pass": 0, "info": 1, "warn": 2, "fail": 3}
-        worst_severity = max(
-            (f.severity for f in findings),
-            key=lambda s: severity_order.get(s, 0),
-            default="pass",
-        )
+        status = worst_severity(findings)
 
-        return AuditResult(status=worst_severity, findings=findings)
+        return AuditResult(status=status, findings=findings)

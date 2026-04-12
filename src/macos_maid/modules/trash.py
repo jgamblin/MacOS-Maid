@@ -25,6 +25,7 @@ class TrashModule(Module):
                 capture_output=True,
                 text=True,
                 check=True,
+                timeout=30,
             )
             # du -sk returns size in KB as first field
             size_kb = int(result.stdout.split()[0])
@@ -40,6 +41,7 @@ class TrashModule(Module):
             capture_output=True,
             text=True,
             check=True,
+            timeout=60,
         )
 
     def scan(self) -> ScanResult:

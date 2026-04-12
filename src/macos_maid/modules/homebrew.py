@@ -22,6 +22,23 @@ class HomebrewModule(Module):
     category = "dev"
     requires_sudo = False
 
+    def __init__(
+        self,
+        update: bool = False,
+        upgrade: bool = False,
+        cleanup: bool = True,
+    ) -> None:
+        """Initialize Homebrew module.
+
+        Args:
+            update: Run brew update (default: True)
+            upgrade: Run brew upgrade (default: True)
+            cleanup: Run brew cleanup (default: True)
+        """
+        self.update = update
+        self.upgrade = upgrade
+        self.cleanup = cleanup
+
     def _is_brew_installed(self) -> bool:
         """Check if brew is installed on the system."""
         return shutil.which("brew") is not None
@@ -33,6 +50,7 @@ class HomebrewModule(Module):
             capture_output=True,
             text=True,
             check=True,
+            timeout=120,
         )
         return result.stdout.strip()
 
@@ -96,30 +114,37 @@ class HomebrewModule(Module):
         items_cleaned = []
         errors = []
 
-        # Run brew update
-        try:
-            self._run_brew("update")
-            items_cleaned.append("brew update")
-        except subprocess.CalledProcessError as e:
-            errors.append(f"brew update failed: {e}")
+        # Run brew update if enabled
+        if self.update:
+            try:
+                self._run_brew("update")
+                items_cleaned.append("brew update")
+            except subprocess.CalledProcessError as e:
+                errors.append(f"brew update failed: {e}")
 
-        # Run brew upgrade
-        try:
-            self._run_brew("upgrade")
-            items_cleaned.append("brew upgrade")
-        except subprocess.CalledProcessError as e:
-            errors.append(f"brew upgrade failed: {e}")
+        # Run brew upgrade if enabled
+        if self.upgrade:
+            try:
+                self._run_brew("upgrade")
+                items_cleaned.append("brew upgrade")
+            except subprocess.CalledProcessError as e:
+                errors.append(f"brew upgrade failed: {e}")
 
-        # Run brew cleanup
-        try:
-            self._run_brew("cleanup", "--prune=all")
-            items_cleaned.append("brew cleanup --prune=all")
-        except subprocess.CalledProcessError as e:
-            errors.append(f"brew cleanup failed: {e}")
+        # Run brew cleanup if enabled — measure before/after
+        bytes_reclaimed = 0
+        if self.cleanup:
+            try:
+                cache_before = self._get_cache_size()
+                self._run_brew("cleanup", "--prune=all")
+                cache_after = self._get_cache_size()
+                bytes_reclaimed = max(0, cache_before - cache_after)
+                items_cleaned.append(f"brew cleanup ({format_bytes(bytes_reclaimed)} reclaimed)")
+            except subprocess.CalledProcessError as e:
+                errors.append(f"brew cleanup failed: {e}")
 
         return CleanResult(
             items_cleaned=items_cleaned,
-            bytes_reclaimed=0,
+            bytes_reclaimed=bytes_reclaimed,
             errors=errors,
         )
 

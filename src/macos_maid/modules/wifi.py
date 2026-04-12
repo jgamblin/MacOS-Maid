@@ -87,6 +87,7 @@ class WiFiModule(Module):
                 capture_output=True,
                 text=True,
                 check=False,
+                timeout=10,
             )
 
             output = result.stdout.strip()
@@ -116,6 +117,7 @@ class WiFiModule(Module):
                 capture_output=True,
                 text=True,
                 check=False,
+                timeout=10,
             )
 
             output = result.stdout.strip()
@@ -147,6 +149,7 @@ class WiFiModule(Module):
             capture_output=True,
             text=True,
             check=True,
+            timeout=10,
         )
 
     def scan(self) -> ScanResult:

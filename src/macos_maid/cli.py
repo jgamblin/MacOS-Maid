@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 from typing import cast
 
@@ -61,6 +63,7 @@ def init(path: str | None) -> None:
 @click.option("--modules", "module_names", default=None, help="Comma-separated module names")
 @click.option("--dry-run", is_flag=True, help="Preview changes without executing")
 @click.option("--sudo", "allow_sudo", is_flag=True, help="Allow modules that require root")
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompt")
 @click.option("--output", type=click.Choice(["terminal", "json", "markdown"]), default=None)
 def clean(
     config_path: str | None,
@@ -69,6 +72,7 @@ def clean(
     module_names: str | None,
     dry_run: bool,
     allow_sudo: bool,
+    yes: bool,
     output: str | None,
 ) -> None:
     """Run cleanup modules."""
@@ -80,6 +84,12 @@ def clean(
         click.echo("No config file found. Running in dry-run mode.")
         click.echo(f"Run 'maid init' to generate {DEFAULT_CONFIG_PATH}\n")
         dry_run = True
+
+    # Validate sudo access upfront if needed
+    if allow_sudo:
+        result = subprocess.run(["sudo", "-n", "true"], capture_output=True)
+        if result.returncode != 0:
+            click.echo("Warning: sudo requires a password. You may be prompted.")
 
     platform = detect_platform()
     output_fmt = output or config.report.get("output", "terminal")
@@ -95,7 +105,7 @@ def clean(
     parsed_modules = module_names.split(",") if module_names else None
 
     runner = ModuleRunner(
-        modules=get_all_modules(),
+        modules=get_all_modules(config),
         dry_run=dry_run,
         allow_sudo=allow_sudo,
         audit_log=audit_log,
@@ -107,6 +117,27 @@ def clean(
     if skipped:
         names = ", ".join(m.name for m in skipped)
         click.echo(f"Skipping privileged modules (use --sudo to enable): {names}\n")
+
+    # If not dry-run and not --yes, show preview and prompt for confirmation
+    if not dry_run and not yes:
+        # Run scan to preview changes
+        scan_runner = ModuleRunner(
+            modules=get_all_modules(),
+            dry_run=True,
+            allow_sudo=allow_sudo,
+            audit_log=audit_log,
+            categories=categories,
+            module_names=parsed_modules,
+        )
+        scan_results = scan_runner.run_clean()
+
+        click.echo("Preview of changes:")
+        click.echo(reporter.format_dry_run(cast(dict[str, ScanResult], scan_results)))
+        click.echo("")
+
+        if not click.confirm("Proceed with cleanup?", default=False):
+            click.echo("Cleanup cancelled.")
+            return
 
     results = runner.run_clean()
 
@@ -130,13 +161,19 @@ def audit(
     cfg_path = Path(config_path) if config_path else DEFAULT_CONFIG_PATH
     config = load_config(cfg_path if cfg_path.exists() else None)
 
+    # Validate sudo access upfront if needed
+    if allow_sudo:
+        result = subprocess.run(["sudo", "-n", "true"], capture_output=True)
+        if result.returncode != 0:
+            click.echo("Warning: sudo requires a password. You may be prompted.")
+
     platform = detect_platform()
     output_fmt = output or config.report.get("output", "terminal")
     reporter = Reporter(platform=platform, output_format=output_fmt)
     audit_log = AuditLog()
 
     runner = ModuleRunner(
-        modules=get_all_modules(),
+        modules=get_all_modules(config),
         dry_run=False,
         allow_sudo=allow_sudo,
         audit_log=audit_log,
@@ -146,16 +183,27 @@ def audit(
     results = runner.run_audit()
     click.echo(reporter.format_audit(results))
 
+    # Exit with non-zero code if any finding has severity "fail"
+    has_failure = any(
+        any(finding.severity == "fail" for finding in result.findings)
+        for result in results.values()
+        if result.findings
+    )
+    if has_failure:
+        sys.exit(1)
+
 
 @main.command()
 @click.option("--config", "config_path", type=click.Path(), default=None)
 @click.option("--dry-run", is_flag=True)
 @click.option("--sudo", "allow_sudo", is_flag=True)
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompt")
 @click.option("--output", type=click.Choice(["terminal", "json", "markdown"]), default=None)
 def report(
     config_path: str | None,
     dry_run: bool,
     allow_sudo: bool,
+    yes: bool,
     output: str | None,
 ) -> None:
     """Run cleanup + security audit and produce full report."""
@@ -166,17 +214,42 @@ def report(
         click.echo("No config file found. Running in dry-run mode.\n")
         dry_run = True
 
+    # Validate sudo access upfront if needed
+    if allow_sudo:
+        result = subprocess.run(["sudo", "-n", "true"], capture_output=True)
+        if result.returncode != 0:
+            click.echo("Warning: sudo requires a password. You may be prompted.")
+
     platform = detect_platform()
     output_fmt = output or config.report.get("output", "terminal")
     reporter = Reporter(platform=platform, output_format=output_fmt)
     audit_log = AuditLog()
 
     runner = ModuleRunner(
-        modules=get_all_modules(),
+        modules=get_all_modules(config),
         dry_run=dry_run,
         allow_sudo=allow_sudo,
         audit_log=audit_log,
     )
+
+    # If not dry-run and not --yes, show preview and prompt for confirmation
+    if not dry_run and not yes:
+        # Run scan to preview changes
+        scan_runner = ModuleRunner(
+            modules=get_all_modules(),
+            dry_run=True,
+            allow_sudo=allow_sudo,
+            audit_log=audit_log,
+        )
+        scan_results = scan_runner.run_clean()
+
+        click.echo("Preview of cleanup changes:")
+        click.echo(reporter.format_dry_run(cast(dict[str, ScanResult], scan_results)))
+        click.echo("")
+
+        if not click.confirm("Proceed with cleanup?", default=False):
+            click.echo("Report cancelled.")
+            return
 
     clean_results = runner.run_clean()
     audit_results = runner.run_audit()
