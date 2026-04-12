@@ -34,10 +34,11 @@ class SystemCacheModule(Module):
 
     # Safe directories to clean - explicit allowlist of known-safe cache subdirectories
     # This prevents wiping app caches that don't regenerate gracefully (Outlook, Teams, browsers)
+    # NOTE: Homebrew and pip caches are NOT listed here — they are handled by
+    # the homebrew and dev_caches modules respectively. Including them here
+    # would double-count reclaimable space.
     SAFE_CACHE_DIRS = [
         Path.home() / "Library" / "Caches" / "com.apple.dt.Xcode",
-        Path.home() / "Library" / "Caches" / "Homebrew",
-        Path.home() / "Library" / "Caches" / "pip",
         Path.home() / "Library" / "Caches" / "yarn",
         Path.home() / "Library" / "Caches" / "com.apple.nsurlsessiond",
     ]

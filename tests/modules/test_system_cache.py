@@ -38,14 +38,11 @@ def test_scan_with_existing_dirs(mock_dir_size):
     """Test scan reports sizes of cache and log dirs that exist."""
 
     # Mock dir_size to return different sizes based on exact path
+    # NOTE: Homebrew and pip caches are NOT in system_cache allowlist —
+    # they're handled by their own modules to avoid double-counting.
     def size_side_effect(path):
         path_str = str(path)
-        # Each allowlisted cache dir gets 100 MB
         if "com.apple.dt.Xcode" in path_str:
-            return 1024 * 1024 * 100
-        elif "Homebrew" in path_str and "Caches" in path_str:
-            return 1024 * 1024 * 100
-        elif path_str.endswith("pip"):
             return 1024 * 1024 * 100
         elif path_str.endswith("yarn"):
             return 1024 * 1024 * 100
@@ -65,10 +62,10 @@ def test_scan_with_existing_dirs(mock_dir_size):
     with patch("pathlib.Path.exists", return_value=True):
         result = module.scan()
 
-    # Should have items for cache allowlist (5) and log dirs (2)
-    assert len(result.items) == 7  # 5 cache dirs + 2 log dirs
-    # 5 * 100 MB + 10 MB + 10 MB = 520 MB
-    assert result.bytes_reclaimable == 1024 * 1024 * 520
+    # Should have items for cache allowlist (3) and log dirs (2)
+    assert len(result.items) == 5  # 3 cache dirs + 2 log dirs
+    # 3 * 100 MB + 10 MB + 10 MB = 320 MB
+    assert result.bytes_reclaimable == 1024 * 1024 * 320
     assert result.requires_sudo is True
 
     # Check that sizes are formatted in items
@@ -98,15 +95,11 @@ def test_scan_with_nonexistent_dirs(mock_dir_size):
 def test_clean_success(mock_dir_size, mock_run):
     """Test clean removes cache contents and log files."""
     # Return different sizes: before and after for each directory
-    # We now have 5 cache dirs + 2 log dirs = 7 directories
+    # We now have 3 cache dirs + 2 log dirs = 5 directories
     size_values = [
-        # 5 cache dirs (before, after)
+        # 3 cache dirs (before, after)
         1024 * 1024 * 100,  # Xcode cache before
         0,  # Xcode cache after
-        1024 * 1024 * 10,  # Homebrew cache before
-        0,  # Homebrew cache after
-        1024 * 1024 * 5,  # pip cache before
-        0,  # pip cache after
         1024 * 1024 * 5,  # yarn cache before
         0,  # yarn cache after
         1024 * 1024 * 5,  # nsurlsessiond cache before
