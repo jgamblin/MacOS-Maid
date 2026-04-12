@@ -78,7 +78,7 @@ class NetworkModule(Module):
                 text=True,
                 check=True,
             )
-            # Output is like "Firewall is enabled. (State = 1)" or "Firewall is disabled. (State = 0)"
+            # "Firewall is enabled. (State = 1)" or "...disabled. (State = 0)"
             return "enabled" in result.stdout.lower()
         except subprocess.CalledProcessError:
             return False
@@ -157,7 +157,9 @@ class NetworkModule(Module):
                     severity="fail",
                     title="Firewall Status",
                     detail="macOS Application Firewall is disabled",
-                    remediation="Enable firewall in System Preferences > Security & Privacy > Firewall",
+                    remediation=(
+                        "Enable firewall in System Preferences > Security & Privacy > Firewall"
+                    ),
                 )
             )
 

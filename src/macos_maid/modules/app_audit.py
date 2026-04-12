@@ -10,9 +10,9 @@ Read-only audit-only module that checks for unsigned applications:
 
 from __future__ import annotations
 
-import os
 import subprocess
 from pathlib import Path
+from typing import Any
 
 from macos_maid.modules.base import (
     AuditResult,
@@ -87,7 +87,10 @@ class AppAuditModule(Module):
                         severity="info",
                         title="Unsigned Application",
                         detail=f"{app_name} is unsigned but appears to be sandboxed",
-                        remediation="Consider verifying the source and reinstalling from official channels if available",
+                        remediation=(
+                            "Consider verifying the source and reinstalling"
+                            " from official channels if available"
+                        ),
                     )
                 )
 
@@ -100,7 +103,10 @@ class AppAuditModule(Module):
                         severity="warn",
                         title="Unsigned Application with Elevated Permissions",
                         detail=f"{app_name} is unsigned and may have elevated permissions",
-                        remediation=f"Review {app_name} carefully. Consider removing or replacing with a signed version.",
+                        remediation=(
+                            f"Review {app_name} carefully."
+                            " Consider removing or replacing with a signed version."
+                        ),
                     )
                 )
 
@@ -218,13 +224,13 @@ class AppAuditModule(Module):
         except Exception:
             return False
 
-    def _get_applications(self) -> list[dict]:
+    def _get_applications(self) -> list[dict[str, Any]]:
         """Scan /Applications for .app bundles and check their signing status.
 
         Returns:
             List of dicts with keys: path, signed, from_app_store, has_elevated_perms
         """
-        apps = []
+        apps: list[dict[str, Any]] = []
         applications_dir = Path("/Applications")
 
         if not applications_dir.exists():

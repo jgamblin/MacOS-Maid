@@ -80,7 +80,9 @@ class SystemIntegrityModule(Module):
                     severity="fail",
                     title="System Integrity Protection",
                     detail="SIP is disabled",
-                    remediation="Enable SIP by booting into Recovery Mode and running 'csrutil enable'",
+                    remediation=(
+                        "Enable SIP by booting into Recovery Mode and running 'csrutil enable'"
+                    ),
                 )
         except Exception as e:
             return Finding(
@@ -113,7 +115,9 @@ class SystemIntegrityModule(Module):
                     severity="fail",
                     title="FileVault Encryption",
                     detail="FileVault is off",
-                    remediation="Enable FileVault in System Preferences > Security & Privacy > FileVault",
+                    remediation=(
+                        "Enable FileVault in System Preferences > Security & Privacy > FileVault"
+                    ),
                 )
         except Exception as e:
             return Finding(
@@ -193,7 +197,11 @@ class SystemIntegrityModule(Module):
                 severity="warn",
                 title="XProtect",
                 detail=f"Could not check XProtect status: {e}",
-                remediation="Verify XProtect manually with 'system_profiler SPInstallHistoryDataType | grep -i xprotect'",
+                remediation=(
+                    "Verify XProtect manually with"
+                    " 'system_profiler SPInstallHistoryDataType"
+                    " | grep -i xprotect'"
+                ),
             )
 
     def _check_firewall(self) -> Finding:
@@ -219,12 +227,18 @@ class SystemIntegrityModule(Module):
                     severity="fail",
                     title="Firewall",
                     detail="Firewall is disabled",
-                    remediation="Enable firewall in System Preferences > Security & Privacy > Firewall",
+                    remediation=(
+                        "Enable firewall in System Preferences > Security & Privacy > Firewall"
+                    ),
                 )
         except Exception as e:
             return Finding(
                 severity="warn",
                 title="Firewall",
                 detail=f"Could not check firewall status: {e}",
-                remediation="Verify firewall manually with '/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate'",
+                remediation=(
+                    "Verify firewall manually with"
+                    " '/usr/libexec/ApplicationFirewall/"
+                    "socketfilterfw --getglobalstate'"
+                ),
             )

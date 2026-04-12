@@ -1,8 +1,6 @@
 """Tests for external security tools integration module."""
 
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from macos_maid.modules.tools import ToolsModule
 

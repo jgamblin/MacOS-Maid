@@ -216,7 +216,10 @@ class PrivacyModule(Module):
                             severity="info",
                             title=f"{human_name} Permission",
                             detail=f"{len(apps)} app(s) have {human_name} access: {app_list}",
-                            remediation=f"Review {human_name} permissions in System Preferences > Security & Privacy > Privacy",
+                            remediation=(
+                                f"Review {human_name} permissions in"
+                                " System Preferences > Security & Privacy > Privacy"
+                            ),
                         )
                     )
 
@@ -230,7 +233,11 @@ class PrivacyModule(Module):
                 Finding(
                     severity="info",
                     title="Old Downloads Files",
-                    detail=f"Found {len(old_downloads)} file(s) in Downloads older than {self.downloads_older_than} days ({size_mb:.1f} MB)",
+                    detail=(
+                        f"Found {len(old_downloads)} file(s) in Downloads"
+                        f" older than {self.downloads_older_than} days"
+                        f" ({size_mb:.1f} MB)"
+                    ),
                     remediation="Review and manually clean up old files in ~/Downloads",
                 )
             )

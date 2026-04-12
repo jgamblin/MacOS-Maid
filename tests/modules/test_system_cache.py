@@ -1,10 +1,7 @@
 # tests/modules/test_system_cache.py
 """Tests for system cache cleanup module."""
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from macos_maid.modules.system_cache import SystemCacheModule
 

@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
-from typing import Union
 
-from macos_maid.modules.base import AuditResult, CleanResult, Finding, ScanResult
+from macos_maid.modules.base import AuditResult, CleanResult, ScanResult
 from macos_maid.system import Platform
 
 
@@ -35,7 +34,11 @@ class Reporter:
     def _header(self) -> str:
         p = self._platform
         date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        return f"MacOS Maid Report — {date}\nmacOS {p.macos_name} {'.'.join(str(v) for v in p.macos_version)} | {p.arch} | {p.filesystem.upper()}"
+        ver = ".".join(str(v) for v in p.macos_version)
+        return (
+            f"MacOS Maid Report — {date}\n"
+            f"macOS {p.macos_name} {ver} | {p.arch} | {p.filesystem.upper()}"
+        )
 
     def format_clean(self, results: dict[str, CleanResult]) -> str:
         if self._format == "json":

@@ -184,7 +184,7 @@ def test_clean_handles_errors_gracefully(dev_caches_module):
         patch.object(dev_caches_module, "_dir_size", side_effect=mock_dir_size),
         patch("macos_maid.modules.dev_caches.Path.exists", mock_exists),
         patch("macos_maid.modules.dev_caches.shutil.rmtree", side_effect=mock_rmtree),
-        patch("macos_maid.modules.dev_caches.Path.mkdir") as mock_mkdir,
+        patch("macos_maid.modules.dev_caches.Path.mkdir"),
     ):
         result = dev_caches_module.clean()
 

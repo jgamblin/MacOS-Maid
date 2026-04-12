@@ -74,7 +74,10 @@ class ToolsModule(Module):
                     Finding(
                         severity="info",
                         title="Lynis Not Installed",
-                        detail="Install Lynis for comprehensive system security auditing. Install with: brew install lynis",
+                        detail=(
+                            "Install Lynis for comprehensive system security"
+                            " auditing. Install with: brew install lynis"
+                        ),
                         remediation=None,
                     )
                 )
@@ -98,7 +101,10 @@ class ToolsModule(Module):
                     Finding(
                         severity="info",
                         title="Osquery Not Installed",
-                        detail="Install osquery for system querying and monitoring. Install with: brew install osquery",
+                        detail=(
+                            "Install osquery for system querying and"
+                            " monitoring. Install with: brew install osquery"
+                        ),
                         remediation=None,
                     )
                 )
@@ -229,7 +235,7 @@ class ToolsModule(Module):
                     remediation="Try running 'lynis audit system --quick' manually",
                 )
             )
-        except Exception as e:
+        except Exception:
             raise  # Re-raise to be caught by audit()
 
         return findings
@@ -277,7 +283,10 @@ class ToolsModule(Module):
                     Finding(
                         severity="warn",
                         title="Unsigned Processes Detected",
-                        detail=f"Found {len(unsigned_processes)} unsigned processes: {', '.join(process_names)}",
+                        detail=(
+                            f"Found {len(unsigned_processes)} unsigned"
+                            f" processes: {', '.join(process_names)}"
+                        ),
                         remediation="Investigate and remove suspicious unsigned processes",
                     )
                 )
@@ -307,7 +316,8 @@ class ToolsModule(Module):
             listeners = json.loads(result.stdout)
             if listeners:
                 listener_info = [
-                    f"{l.get('name', 'unknown')}:{l.get('port', '?')}" for l in listeners[:5]
+                    f"{item.get('name', 'unknown')}:{item.get('port', '?')}"
+                    for item in listeners[:5]
                 ]
                 findings.append(
                     Finding(
@@ -338,7 +348,9 @@ class ToolsModule(Module):
                 Finding(
                     severity="info",
                     title="KnockKnock Available",
-                    detail="KnockKnock is installed. Run it manually to scan for persistent malware.",
+                    detail=(
+                        "KnockKnock is installed. Run it manually to scan for persistent malware."
+                    ),
                     remediation=None,
                 )
             )

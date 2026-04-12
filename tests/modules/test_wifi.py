@@ -4,8 +4,6 @@
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-import pytest
-
 from macos_maid.modules.wifi import WiFiModule
 
 

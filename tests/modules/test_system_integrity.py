@@ -3,8 +3,6 @@
 
 from unittest.mock import patch
 
-import pytest
-
 from macos_maid.modules.system_integrity import SystemIntegrityModule
 
 

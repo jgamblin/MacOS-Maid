@@ -1,9 +1,7 @@
 # tests/modules/test_app_audit.py
 """Tests for app audit module."""
 
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from macos_maid.modules.app_audit import AppAuditModule
 

@@ -7,7 +7,7 @@ and audit log recording.
 
 from __future__ import annotations
 
-from typing import Any, Union
+from typing import Any
 
 from macos_maid.audit_log import AuditLog
 from macos_maid.modules.base import AuditResult, CleanResult, Module, ScanResult
@@ -48,7 +48,7 @@ class ModuleRunner:
 
         return filtered
 
-    def run_clean(self) -> dict[str, Union[ScanResult, CleanResult]]:
+    def run_clean(self) -> dict[str, ScanResult | CleanResult]:
         """Run cleanup on all matching modules.
 
         Returns ScanResult per module in dry-run mode, CleanResult otherwise.

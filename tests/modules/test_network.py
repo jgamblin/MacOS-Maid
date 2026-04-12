@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from macos_maid.modules.base import AuditResult, CleanResult, Finding, ScanResult
+from macos_maid.modules.base import AuditResult, CleanResult, ScanResult
 from macos_maid.modules.network import NetworkModule
 
 

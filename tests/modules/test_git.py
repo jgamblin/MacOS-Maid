@@ -1,6 +1,6 @@
 # tests/modules/test_git.py
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -76,7 +76,7 @@ def test_git_never_deletes_protected(git_module):
     ):
         mock_run_git.return_value = ""
 
-        result = git_module.clean()
+        git_module.clean()
 
         # Verify that git branch -d was only called for the non-protected branch
         delete_calls = [

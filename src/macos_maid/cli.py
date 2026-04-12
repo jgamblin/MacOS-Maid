@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import click
 
@@ -11,6 +12,7 @@ from macos_maid import __version__
 from macos_maid.audit_log import AuditLog
 from macos_maid.config import generate_default_config_yaml, load_config
 from macos_maid.modules import get_all_modules
+from macos_maid.modules.base import CleanResult, ScanResult
 from macos_maid.reporter import Reporter
 from macos_maid.runner import ModuleRunner
 from macos_maid.system import detect_platform
@@ -109,9 +111,9 @@ def clean(
     results = runner.run_clean()
 
     if dry_run:
-        click.echo(reporter.format_dry_run(results))
+        click.echo(reporter.format_dry_run(cast(dict[str, ScanResult], results)))
     else:
-        click.echo(reporter.format_clean(results))
+        click.echo(reporter.format_clean(cast(dict[str, CleanResult], results)))
         audit_log.save(DEFAULT_LOG_DIR)
 
 
@@ -180,9 +182,9 @@ def report(
     audit_results = runner.run_audit()
 
     if dry_run:
-        click.echo(reporter.format_dry_run(clean_results))
+        click.echo(reporter.format_dry_run(cast(dict[str, ScanResult], clean_results)))
     else:
-        click.echo(reporter.format_clean(clean_results))
+        click.echo(reporter.format_clean(cast(dict[str, CleanResult], clean_results)))
 
     click.echo("")
     click.echo(reporter.format_audit(audit_results))
