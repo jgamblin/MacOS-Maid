@@ -4,6 +4,7 @@
 from unittest.mock import patch
 
 from macos_maid.modules.app_audit import AppAuditModule
+from macos_maid.modules.base import Severity
 
 
 def test_app_audit_module_metadata():
@@ -105,7 +106,7 @@ def test_audit_all_signed_apps(mock_get_apps):
     assert result.status == "pass"
     # Should have one summary finding
     assert len(result.findings) == 1
-    assert result.findings[0].severity == "pass"
+    assert result.findings[0].severity == Severity.PASS
     assert "2 applications" in result.findings[0].detail.lower()
 
 
@@ -134,7 +135,7 @@ def test_audit_unsigned_sandboxed_apps(mock_get_apps):
     assert result.status == "info"
 
     # Should have findings for unsigned apps
-    unsigned_findings = [f for f in result.findings if f.severity == "info"]
+    unsigned_findings = [f for f in result.findings if f.severity == Severity.INFO]
     assert len(unsigned_findings) >= 1
 
     # Check that the unsigned app is mentioned
@@ -166,7 +167,7 @@ def test_audit_unsigned_privileged_apps(mock_get_apps):
     assert result.status == "warn"
 
     # Should have findings for unsigned privileged apps
-    warn_findings = [f for f in result.findings if f.severity == "warn"]
+    warn_findings = [f for f in result.findings if f.severity == Severity.WARN]
     assert len(warn_findings) >= 1
 
     # Check that the dangerous app is mentioned
@@ -211,9 +212,9 @@ def test_audit_mixed_apps(mock_get_apps):
     assert len(result.findings) >= 2
 
     # Should have at least one warning
-    warn_findings = [f for f in result.findings if f.severity == "warn"]
+    warn_findings = [f for f in result.findings if f.severity == Severity.WARN]
     assert len(warn_findings) >= 1
 
     # Should have at least one info
-    info_findings = [f for f in result.findings if f.severity == "info"]
+    info_findings = [f for f in result.findings if f.severity == Severity.INFO]
     assert len(info_findings) >= 1

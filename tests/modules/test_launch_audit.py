@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from macos_maid.modules.base import AuditResult, CleanResult, ScanResult
+from macos_maid.modules.base import AuditResult, CleanResult, ScanResult, Severity
 from macos_maid.modules.launch_audit import LaunchAuditModule
 
 
@@ -75,7 +75,7 @@ def test_launch_audit_with_no_non_apple_items(launch_audit_module):
         assert isinstance(result, AuditResult)
         assert result.status == "pass"
         assert len(result.findings) == 1
-        assert result.findings[0].severity == "pass"
+        assert result.findings[0].severity == Severity.PASS
         assert "no non-apple" in result.findings[0].detail.lower()
 
 
@@ -99,7 +99,7 @@ def test_launch_audit_with_non_apple_items(launch_audit_module):
         assert isinstance(result, AuditResult)
         assert result.status == "info"
         # Should have findings for the 2 non-Apple items
-        non_apple_findings = [f for f in result.findings if f.severity == "info"]
+        non_apple_findings = [f for f in result.findings if f.severity == Severity.INFO]
         assert len(non_apple_findings) == 2
 
         # Check that non-Apple items are in findings
@@ -124,7 +124,7 @@ def test_launch_audit_with_all_non_apple_items(launch_audit_module):
         assert isinstance(result, AuditResult)
         assert result.status == "info"
         # Should have findings for both items
-        non_apple_findings = [f for f in result.findings if f.severity == "info"]
+        non_apple_findings = [f for f in result.findings if f.severity == Severity.INFO]
         assert len(non_apple_findings) == 2
 
 
@@ -136,4 +136,4 @@ def test_launch_audit_with_no_items(launch_audit_module):
         assert isinstance(result, AuditResult)
         assert result.status == "pass"
         assert len(result.findings) == 1
-        assert result.findings[0].severity == "pass"
+        assert result.findings[0].severity == Severity.PASS

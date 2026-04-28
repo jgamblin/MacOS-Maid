@@ -92,7 +92,7 @@ class Reporter:
                         "status": r.status,
                         "findings": [
                             {
-                                "severity": f.severity,
+                                "severity": str(f.severity),
                                 "title": f.title,
                                 "detail": f.detail,
                                 "remediation": f.remediation,
@@ -117,7 +117,7 @@ class Reporter:
 
         for name, result in results.items():
             for finding in result.findings:
-                severity_label = finding.severity.upper()
+                severity_label = str(finding.severity).upper()
                 if self._format == "markdown":
                     lines.append(f"- **{severity_label}**: {finding.title} — {finding.detail}")
                     if finding.remediation:

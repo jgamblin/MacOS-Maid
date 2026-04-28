@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from macos_maid.modules.base import AuditResult, Finding, Module
+from macos_maid.modules.base import AuditResult, Finding, Module, Severity
 
 
 class LaunchAuditModule(Module):
@@ -73,7 +73,7 @@ class LaunchAuditModule(Module):
         if not non_apple_items:
             findings.append(
                 Finding(
-                    severity="pass",
+                    severity=Severity.PASS,
                     title="Launch Daemons and Agents",
                     detail="No non-Apple launch daemons or agents found",
                     remediation=None,
@@ -85,7 +85,7 @@ class LaunchAuditModule(Module):
         for item in non_apple_items:
             findings.append(
                 Finding(
-                    severity="info",
+                    severity=Severity.INFO,
                     title="Non-Apple Launch Item",
                     detail=f"{item['label']} at {item['path']}",
                     remediation="Review and verify this launch item is expected",

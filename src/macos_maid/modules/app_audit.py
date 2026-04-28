@@ -14,7 +14,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from macos_maid.modules.base import AuditResult, Finding, Module, worst_severity
+from macos_maid.modules.base import AuditResult, Finding, Module, Severity, worst_severity
 
 
 class AppAuditModule(Module):
@@ -57,7 +57,7 @@ class AppAuditModule(Module):
         if signed_count == len(apps):
             findings.append(
                 Finding(
-                    severity="pass",
+                    severity=Severity.PASS,
                     title="Application Security",
                     detail=f"All {signed_count} applications are signed or from the App Store",
                     remediation=None,
@@ -70,7 +70,7 @@ class AppAuditModule(Module):
                 app_name = Path(app_path).name
                 findings.append(
                     Finding(
-                        severity="info",
+                        severity=Severity.INFO,
                         title="Unsigned Application",
                         detail=f"{app_name} is unsigned but appears to be sandboxed",
                         remediation=(
@@ -86,7 +86,7 @@ class AppAuditModule(Module):
                 app_name = Path(app_path).name
                 findings.append(
                     Finding(
-                        severity="warn",
+                        severity=Severity.WARN,
                         title="Unsigned Application with Elevated Permissions",
                         detail=f"{app_name} is unsigned and may have elevated permissions",
                         remediation=(

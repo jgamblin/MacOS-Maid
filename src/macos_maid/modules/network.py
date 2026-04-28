@@ -10,6 +10,7 @@ from macos_maid.modules.base import (
     Finding,
     Module,
     ScanResult,
+    Severity,
     worst_severity,
 )
 
@@ -142,7 +143,7 @@ class NetworkModule(Module):
 
             findings.append(
                 Finding(
-                    severity="info",
+                    severity=Severity.INFO,
                     title="Open Listening Ports",
                     detail=f"Found {len(open_ports)} open TCP ports: {port_list}",
                     remediation="Review open ports and close any unnecessary services",
@@ -151,7 +152,7 @@ class NetworkModule(Module):
         else:
             findings.append(
                 Finding(
-                    severity="pass",
+                    severity=Severity.PASS,
                     title="Open Listening Ports",
                     detail="No unexpected open TCP ports detected",
                     remediation=None,
@@ -164,7 +165,7 @@ class NetworkModule(Module):
             profile_list = ", ".join(vpn_profiles)
             findings.append(
                 Finding(
-                    severity="info",
+                    severity=Severity.INFO,
                     title="VPN Profiles",
                     detail=f"Found {len(vpn_profiles)} VPN profile(s): {profile_list}",
                     remediation=None,
@@ -173,7 +174,7 @@ class NetworkModule(Module):
         else:
             findings.append(
                 Finding(
-                    severity="info",
+                    severity=Severity.INFO,
                     title="VPN Profiles",
                     detail="No VPN profiles configured",
                     remediation=None,

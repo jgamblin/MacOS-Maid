@@ -11,7 +11,7 @@ import re
 import shutil
 import subprocess
 
-from macos_maid.modules.base import AuditResult, Finding, Module, worst_severity
+from macos_maid.modules.base import AuditResult, Finding, Module, Severity, worst_severity
 
 
 class ToolsModule(Module):
@@ -50,7 +50,7 @@ class ToolsModule(Module):
                 except Exception as e:
                     findings.append(
                         Finding(
-                            severity="warn",
+                            severity=Severity.WARN,
                             title="Lynis Execution Failed",
                             detail=f"Failed to run Lynis: {e}",
                             remediation="Verify Lynis installation with 'lynis --version'",
@@ -59,7 +59,7 @@ class ToolsModule(Module):
             else:
                 findings.append(
                     Finding(
-                        severity="info",
+                        severity=Severity.INFO,
                         title="Lynis Not Installed",
                         detail=(
                             "Install Lynis for comprehensive system security"
@@ -77,7 +77,7 @@ class ToolsModule(Module):
                 except Exception as e:
                     findings.append(
                         Finding(
-                            severity="warn",
+                            severity=Severity.WARN,
                             title="Osquery Execution Failed",
                             detail=f"Failed to run osquery: {e}",
                             remediation="Verify osquery installation with 'osqueryi --version'",
@@ -86,7 +86,7 @@ class ToolsModule(Module):
             else:
                 findings.append(
                     Finding(
-                        severity="info",
+                        severity=Severity.INFO,
                         title="Osquery Not Installed",
                         detail=(
                             "Install osquery for system querying and"
@@ -104,7 +104,7 @@ class ToolsModule(Module):
                 except Exception as e:
                     findings.append(
                         Finding(
-                            severity="warn",
+                            severity=Severity.WARN,
                             title="KnockKnock Execution Failed",
                             detail=f"Failed to run KnockKnock: {e}",
                             remediation="Verify KnockKnock installation",
@@ -113,7 +113,7 @@ class ToolsModule(Module):
             else:
                 findings.append(
                     Finding(
-                        severity="info",
+                        severity=Severity.INFO,
                         title="KnockKnock Not Installed",
                         detail="Install KnockKnock to scan for persistent malware. Download from: https://objective-see.org/products/knockknock.html",
                         remediation=None,
@@ -177,7 +177,7 @@ class ToolsModule(Module):
                 if warning_text:
                     findings.append(
                         Finding(
-                            severity="warn",
+                            severity=Severity.WARN,
                             title="Lynis Warning",
                             detail=warning_text,
                             remediation="Review Lynis report for detailed recommendations",
@@ -198,7 +198,7 @@ class ToolsModule(Module):
                 if suggestion_text:
                     findings.append(
                         Finding(
-                            severity="info",
+                            severity=Severity.INFO,
                             title="Lynis Suggestion",
                             detail=suggestion_text,
                             remediation=None,
@@ -208,7 +208,7 @@ class ToolsModule(Module):
         except subprocess.TimeoutExpired:
             findings.append(
                 Finding(
-                    severity="warn",
+                    severity=Severity.WARN,
                     title="Lynis Timeout",
                     detail="Lynis audit took too long and was terminated",
                     remediation="Try running 'lynis audit system --quick' manually",
@@ -252,7 +252,7 @@ class ToolsModule(Module):
                 process_names = [p.get("name", "unknown") for p in non_system_processes[:5]]
                 findings.append(
                     Finding(
-                        severity="info",
+                        severity=Severity.INFO,
                         title="Non-System Processes Detected",
                         detail=(
                             f"Found {len(non_system_processes)} non-system"
@@ -290,7 +290,7 @@ class ToolsModule(Module):
                 ]
                 findings.append(
                     Finding(
-                        severity="info",
+                        severity=Severity.INFO,
                         title="Network Listeners Detected",
                         detail=f"Processes listening on network: {', '.join(listener_info)}",
                         remediation="Verify these listeners are expected and legitimate",
@@ -311,7 +311,7 @@ class ToolsModule(Module):
         # KnockKnock is primarily a GUI app - suggest manual usage
         return [
             Finding(
-                severity="info",
+                severity=Severity.INFO,
                 title="KnockKnock Available",
                 detail=(
                     "KnockKnock is installed. Run it to scan for persistent malware,"

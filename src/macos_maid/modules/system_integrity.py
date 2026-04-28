@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import subprocess
 
-from macos_maid.modules.base import AuditResult, Finding, Module, worst_severity
+from macos_maid.modules.base import AuditResult, Finding, Module, Severity, worst_severity
 
 
 class SystemIntegrityModule(Module):
@@ -50,14 +50,14 @@ class SystemIntegrityModule(Module):
 
             if "enabled" in output:
                 return Finding(
-                    severity="pass",
+                    severity=Severity.PASS,
                     title="System Integrity Protection",
                     detail="SIP is enabled",
                     remediation=None,
                 )
             else:
                 return Finding(
-                    severity="fail",
+                    severity=Severity.FAIL,
                     title="System Integrity Protection",
                     detail="SIP is disabled",
                     remediation=(
@@ -66,7 +66,7 @@ class SystemIntegrityModule(Module):
                 )
         except Exception as e:
             return Finding(
-                severity="warn",
+                severity=Severity.WARN,
                 title="System Integrity Protection",
                 detail=f"Could not check SIP status: {e}",
                 remediation="Verify SIP manually with 'csrutil status'",
@@ -85,14 +85,14 @@ class SystemIntegrityModule(Module):
 
             if "on" in output:
                 return Finding(
-                    severity="pass",
+                    severity=Severity.PASS,
                     title="FileVault Encryption",
                     detail="FileVault is on",
                     remediation=None,
                 )
             else:
                 return Finding(
-                    severity="fail",
+                    severity=Severity.FAIL,
                     title="FileVault Encryption",
                     detail="FileVault is off",
                     remediation=(
@@ -101,7 +101,7 @@ class SystemIntegrityModule(Module):
                 )
         except Exception as e:
             return Finding(
-                severity="warn",
+                severity=Severity.WARN,
                 title="FileVault Encryption",
                 detail=f"Could not check FileVault status: {e}",
                 remediation="Verify FileVault manually with 'fdesetup status'",
@@ -120,28 +120,28 @@ class SystemIntegrityModule(Module):
 
             if "enabled" in output or "assessments enabled" in output:
                 return Finding(
-                    severity="pass",
+                    severity=Severity.PASS,
                     title="Gatekeeper",
                     detail="Gatekeeper is enabled",
                     remediation=None,
                 )
             elif "disabled" in output or "assessments disabled" in output:
                 return Finding(
-                    severity="fail",
+                    severity=Severity.FAIL,
                     title="Gatekeeper",
                     detail="Gatekeeper is disabled",
                     remediation="Enable Gatekeeper with 'sudo spctl --master-enable'",
                 )
             else:
                 return Finding(
-                    severity="warn",
+                    severity=Severity.WARN,
                     title="Gatekeeper",
                     detail="Gatekeeper status is unclear",
                     remediation="Verify Gatekeeper manually with 'spctl --status'",
                 )
         except Exception as e:
             return Finding(
-                severity="warn",
+                severity=Severity.WARN,
                 title="Gatekeeper",
                 detail=f"Could not check Gatekeeper status: {e}",
                 remediation="Verify Gatekeeper manually with 'spctl --status'",
@@ -160,21 +160,21 @@ class SystemIntegrityModule(Module):
 
             if "xprotect" in output:
                 return Finding(
-                    severity="pass",
+                    severity=Severity.PASS,
                     title="XProtect",
                     detail="XProtect is installed",
                     remediation=None,
                 )
             else:
                 return Finding(
-                    severity="warn",
+                    severity=Severity.WARN,
                     title="XProtect",
                     detail="XProtect installation not found in system history",
                     remediation="XProtect should be automatically installed by macOS",
                 )
         except Exception as e:
             return Finding(
-                severity="warn",
+                severity=Severity.WARN,
                 title="XProtect",
                 detail=f"Could not check XProtect status: {e}",
                 remediation=(
@@ -197,14 +197,14 @@ class SystemIntegrityModule(Module):
 
             if "enabled" in output:
                 return Finding(
-                    severity="pass",
+                    severity=Severity.PASS,
                     title="Firewall",
                     detail="Firewall is enabled",
                     remediation=None,
                 )
             else:
                 return Finding(
-                    severity="fail",
+                    severity=Severity.FAIL,
                     title="Firewall",
                     detail="Firewall is disabled",
                     remediation=(
@@ -213,7 +213,7 @@ class SystemIntegrityModule(Module):
                 )
         except Exception as e:
             return Finding(
-                severity="warn",
+                severity=Severity.WARN,
                 title="Firewall",
                 detail=f"Could not check firewall status: {e}",
                 remediation=(

@@ -3,6 +3,7 @@
 
 from unittest.mock import patch
 
+from macos_maid.modules.base import Severity
 from macos_maid.modules.system_integrity import SystemIntegrityModule
 
 
@@ -79,7 +80,7 @@ def test_audit_all_pass(mock_firewall, mock_xprotect, mock_gatekeeper, mock_file
 
     assert result.status == "pass"
     assert len(result.findings) == 5
-    assert all(f.severity == "pass" for f in result.findings)
+    assert all(f.severity == Severity.PASS for f in result.findings)
 
 
 @patch("macos_maid.modules.system_integrity.SystemIntegrityModule._check_sip")
@@ -132,7 +133,7 @@ def test_audit_mixed_results(
     assert len(result.findings) == 5
 
     # Check that fail findings are present
-    fail_findings = [f for f in result.findings if f.severity == "fail"]
+    fail_findings = [f for f in result.findings if f.severity == Severity.FAIL]
     assert len(fail_findings) == 2
 
     # Check that remediation is provided for failed checks

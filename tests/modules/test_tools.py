@@ -2,6 +2,7 @@
 
 from unittest.mock import patch
 
+from macos_maid.modules.base import Severity
 from macos_maid.modules.tools import ToolsModule
 
 
@@ -80,7 +81,7 @@ def test_audit_with_lynis_not_installed(mock_which):
 
     # Should have info finding suggesting installation
     assert len(result.findings) == 1
-    assert result.findings[0].severity == "info"
+    assert result.findings[0].severity == Severity.INFO
     assert "lynis" in result.findings[0].title.lower()
     assert "brew install lynis" in result.findings[0].detail.lower()
 
@@ -126,7 +127,7 @@ def test_audit_with_osquery_not_installed(mock_which):
 
     # Should have info finding suggesting installation
     assert len(result.findings) == 1
-    assert result.findings[0].severity == "info"
+    assert result.findings[0].severity == Severity.INFO
     assert "osquery" in result.findings[0].title.lower()
     assert "brew install osquery" in result.findings[0].detail.lower()
 
@@ -173,7 +174,7 @@ def test_audit_with_knockknock_not_installed(mock_which):
 
     # Should have info finding suggesting installation
     assert len(result.findings) == 1
-    assert result.findings[0].severity == "info"
+    assert result.findings[0].severity == Severity.INFO
     assert "knockknock" in result.findings[0].title.lower()
 
 
@@ -240,6 +241,6 @@ def test_audit_handles_lynis_exception(mock_run_lynis, mock_which):
 
     # Should have a warning finding about the error
     assert len(result.findings) == 1
-    assert result.findings[0].severity == "warn"
+    assert result.findings[0].severity == Severity.WARN
     assert "lynis" in result.findings[0].title.lower()
     assert "failed" in result.findings[0].detail.lower()

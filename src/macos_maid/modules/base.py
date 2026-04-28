@@ -27,7 +27,7 @@ def worst_severity(findings: list[Finding]) -> str:
     """Return the worst severity string from a list of findings."""
     if not findings:
         return "pass"
-    worst = max(Severity.from_str(f.severity) for f in findings)
+    worst = max(f.severity for f in findings)
     return str(worst)
 
 
@@ -61,18 +61,25 @@ class CleanResult:
 class Finding:
     """A single security finding."""
 
-    severity: str  # "pass", "info", "warn", "fail"
+    severity: Severity | str
     title: str
     detail: str
     remediation: str | None = None
 
     def __post_init__(self) -> None:
-        """Validate severity is one of the allowed values."""
-        allowed = {"pass", "info", "warn", "fail"}
-        if self.severity not in allowed:
-            raise ValueError(
-                f"Invalid severity '{self.severity}'. Must be one of: {', '.join(sorted(allowed))}"
-            )
+        """Coerce severity to Severity enum; raise on invalid values."""
+        if isinstance(self.severity, Severity):
+            return
+        if isinstance(self.severity, str):
+            try:
+                self.severity = Severity.from_str(self.severity)
+            except KeyError:
+                allowed = ", ".join(s.name.lower() for s in Severity)
+                raise ValueError(
+                    f"Invalid severity '{self.severity}'. Must be one of: {allowed}"
+                ) from None
+            return
+        raise ValueError(f"severity must be Severity or str, got {type(self.severity).__name__}")
 
 
 @dataclass

@@ -14,6 +14,7 @@ from macos_maid.modules.base import (
     Finding,
     Module,
     ScanResult,
+    Severity,
     worst_severity,
 )
 
@@ -245,7 +246,7 @@ class PrivacyModule(Module):
 
                     findings.append(
                         Finding(
-                            severity="info",
+                            severity=Severity.INFO,
                             title=f"{human_name} Permission",
                             detail=f"{len(apps)} app(s) have {human_name} access: {app_list}",
                             remediation=(
@@ -263,7 +264,7 @@ class PrivacyModule(Module):
 
             findings.append(
                 Finding(
-                    severity="info",
+                    severity=Severity.INFO,
                     title="Old Downloads Files",
                     detail=(
                         f"Found {len(old_downloads)} file(s) in Downloads"
@@ -278,7 +279,7 @@ class PrivacyModule(Module):
         if not findings:
             findings.append(
                 Finding(
-                    severity="pass",
+                    severity=Severity.PASS,
                     title="Privacy Audit",
                     detail="No privacy concerns detected",
                     remediation=None,

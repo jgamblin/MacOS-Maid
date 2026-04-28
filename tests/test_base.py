@@ -29,7 +29,7 @@ def test_finding_with_remediation():
         detail="macOS firewall is not enabled",
         remediation="Enable via System Settings > Network > Firewall",
     )
-    assert f.severity == "warn"
+    assert f.severity == Severity.WARN
     assert f.remediation is not None
 
 
@@ -152,3 +152,29 @@ def test_worst_severity_with_fail():
     ]
     result = worst_severity(findings)
     assert result == "fail"
+
+
+def test_finding_accepts_str_severity_and_stores_enum():
+    f = Finding(severity="fail", title="x", detail="y")
+    assert f.severity is Severity.FAIL
+
+
+def test_finding_accepts_severity_enum_directly():
+    f = Finding(severity=Severity.WARN, title="x", detail="y")
+    assert f.severity is Severity.WARN
+
+
+def test_finding_rejects_invalid_severity():
+    import pytest
+
+    with pytest.raises(ValueError):
+        Finding(severity="bogus", title="x", detail="y")
+
+
+def test_worst_severity_with_enum_findings():
+    findings = [
+        Finding(severity=Severity.INFO, title="a", detail=""),
+        Finding(severity="fail", title="b", detail=""),
+        Finding(severity=Severity.WARN, title="c", detail=""),
+    ]
+    assert worst_severity(findings) == "fail"

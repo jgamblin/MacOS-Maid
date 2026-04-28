@@ -14,7 +14,7 @@ from macos_maid import __version__
 from macos_maid.audit_log import AuditLog
 from macos_maid.config import generate_default_config_yaml, load_config
 from macos_maid.modules import get_all_modules
-from macos_maid.modules.base import CleanResult, Module, ScanResult
+from macos_maid.modules.base import CleanResult, Module, ScanResult, Severity
 from macos_maid.reporter import Reporter
 from macos_maid.runner import ModuleRunner
 from macos_maid.system import detect_platform
@@ -222,7 +222,7 @@ def audit(
 
     # Exit with non-zero code if any finding has severity "fail"
     has_failure = any(
-        any(finding.severity == "fail" for finding in result.findings)
+        any(finding.severity == Severity.FAIL for finding in result.findings)
         for result in results.values()
         if result.findings
     )
