@@ -5,9 +5,11 @@ from __future__ import annotations
 import copy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 import yaml
+
+T = TypeVar("T")
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "categories": ["dev", "security"],
@@ -240,7 +242,7 @@ class MaidConfig:
             return dict(DEFAULT_CONFIG.get(module_name, {}))
         return result
 
-    def _build(self, section: str, cls: type) -> object:
+    def _build(self, section: str, cls: type[T]) -> T:
         """Build a dataclass from config data, ignoring unknown keys."""
         data = self.get_module_config(section)
         valid_fields = {f.name for f in cls.__dataclass_fields__.values()}  # type: ignore[attr-defined]
@@ -249,55 +251,55 @@ class MaidConfig:
 
     @property
     def homebrew(self) -> HomebrewConfig:
-        return self._build("homebrew", HomebrewConfig)  # type: ignore[return-value]
+        return self._build("homebrew", HomebrewConfig)
 
     @property
     def docker(self) -> DockerConfig:
-        return self._build("docker", DockerConfig)  # type: ignore[return-value]
+        return self._build("docker", DockerConfig)
 
     @property
     def dev_caches(self) -> DevCachesConfig:
-        return self._build("dev_caches", DevCachesConfig)  # type: ignore[return-value]
+        return self._build("dev_caches", DevCachesConfig)
 
     @property
     def git(self) -> GitConfig:
-        return self._build("git", GitConfig)  # type: ignore[return-value]
+        return self._build("git", GitConfig)
 
     @property
     def trash(self) -> TrashConfig:
-        return self._build("trash", TrashConfig)  # type: ignore[return-value]
+        return self._build("trash", TrashConfig)
 
     @property
     def wifi(self) -> WiFiConfig:
-        return self._build("wifi", WiFiConfig)  # type: ignore[return-value]
+        return self._build("wifi", WiFiConfig)
 
     @property
     def network(self) -> NetworkConfig:
-        return self._build("network", NetworkConfig)  # type: ignore[return-value]
+        return self._build("network", NetworkConfig)
 
     @property
     def privacy(self) -> PrivacyConfig:
-        return self._build("privacy", PrivacyConfig)  # type: ignore[return-value]
+        return self._build("privacy", PrivacyConfig)
 
     @property
     def system_integrity(self) -> SystemIntegrityConfig:
-        return self._build("system_integrity", SystemIntegrityConfig)  # type: ignore[return-value]
+        return self._build("system_integrity", SystemIntegrityConfig)
 
     @property
     def app_audit(self) -> AppAuditConfig:
-        return self._build("app_audit", AppAuditConfig)  # type: ignore[return-value]
+        return self._build("app_audit", AppAuditConfig)
 
     @property
     def launch_audit(self) -> LaunchAuditConfig:
-        return self._build("launch_audit", LaunchAuditConfig)  # type: ignore[return-value]
+        return self._build("launch_audit", LaunchAuditConfig)
 
     @property
     def system_cache(self) -> SystemCacheConfig:
-        return self._build("system_cache", SystemCacheConfig)  # type: ignore[return-value]
+        return self._build("system_cache", SystemCacheConfig)
 
     @property
     def tools(self) -> ToolsConfig:
-        return self._build("tools", ToolsConfig)  # type: ignore[return-value]
+        return self._build("tools", ToolsConfig)
 
 
 def load_config(path: Path | None) -> MaidConfig:
