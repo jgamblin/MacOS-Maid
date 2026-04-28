@@ -44,7 +44,7 @@ class PrivacyModule(Module):
 
     name = "privacy"
     category = "security"
-    requires_sudo = True
+    requires_sudo = False
 
     def __init__(
         self,
@@ -189,7 +189,7 @@ class PrivacyModule(Module):
         return ScanResult(
             items=items,
             bytes_reclaimable=0,
-            requires_sudo=True,
+            requires_sudo=False,
         )
 
     def clean(self) -> CleanResult:

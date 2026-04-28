@@ -18,7 +18,7 @@ def test_privacy_module_metadata(privacy_module):
     """Test module metadata is set correctly."""
     assert privacy_module.name == "privacy"
     assert privacy_module.category == "security"
-    assert privacy_module.requires_sudo is True
+    assert privacy_module.requires_sudo is False
 
 
 def test_privacy_module_default_config(privacy_module):
@@ -36,7 +36,7 @@ def test_privacy_scan_with_clear_recent_enabled(privacy_module):
     assert len(result.items) == 1
     assert "Clear recent items" in result.items[0]
     assert result.bytes_reclaimable == 0
-    assert result.requires_sudo is True
+    assert result.requires_sudo is False
 
 
 def test_privacy_scan_with_clear_recent_disabled():
@@ -47,7 +47,7 @@ def test_privacy_scan_with_clear_recent_disabled():
     assert isinstance(result, ScanResult)
     assert len(result.items) == 0
     assert result.bytes_reclaimable == 0
-    assert result.requires_sudo is True
+    assert result.requires_sudo is False
 
 
 def test_privacy_never_deletes_downloads_by_default(privacy_module):
