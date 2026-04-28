@@ -18,15 +18,15 @@ def test_safe_dirs_never_include_var_folders():
     """Test that NONE of the cache/log dirs contain /private/var/folders."""
     module = SystemCacheModule()
 
-    # Check SAFE_CACHE_DIRS
-    for cache_dir in module.SAFE_CACHE_DIRS:
+    # Check _safe_cache_dirs()
+    for cache_dir in module._safe_cache_dirs():
         assert "/private/var/folders" not in str(cache_dir), (
             f"DANGEROUS: {cache_dir} contains /private/var/folders"
         )
         assert "var/folders" not in str(cache_dir), f"DANGEROUS: {cache_dir} contains var/folders"
 
-    # Check SAFE_LOG_DIRS
-    for log_dir in module.SAFE_LOG_DIRS:
+    # Check _safe_log_dirs()
+    for log_dir in module._safe_log_dirs():
         assert "/private/var/folders" not in str(log_dir), (
             f"DANGEROUS: {log_dir} contains /private/var/folders"
         )

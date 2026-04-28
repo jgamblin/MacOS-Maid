@@ -37,16 +37,29 @@ class SystemCacheModule(Module):
     # NOTE: Homebrew and pip caches are NOT listed here — they are handled by
     # the homebrew and dev_caches modules respectively. Including them here
     # would double-count reclaimable space.
-    SAFE_CACHE_DIRS = [
-        Path.home() / "Library" / "Caches" / "com.apple.dt.Xcode",
-        Path.home() / "Library" / "Caches" / "yarn",
-        Path.home() / "Library" / "Caches" / "com.apple.nsurlsessiond",
-    ]
+    @staticmethod
+    def _safe_cache_dirs() -> list[Path]:
+        """Return list of safe cache directories to clean.
 
-    SAFE_LOG_DIRS = [
-        Path("/Library/Logs/DiagnosticReports"),
-        Path.home() / "Library" / "Logs" / "DiagnosticReports",
-    ]
+        Computed lazily to avoid import-time Path.home() calls.
+        """
+        home = Path.home()
+        return [
+            home / "Library" / "Caches" / "com.apple.dt.Xcode",
+            home / "Library" / "Caches" / "yarn",
+            home / "Library" / "Caches" / "com.apple.nsurlsessiond",
+        ]
+
+    @staticmethod
+    def _safe_log_dirs() -> list[Path]:
+        """Return list of safe log directories to clean.
+
+        Computed lazily to avoid import-time Path.home() calls.
+        """
+        return [
+            Path("/Library/Logs/DiagnosticReports"),
+            Path.home() / "Library" / "Logs" / "DiagnosticReports",
+        ]
 
     def scan(self) -> ScanResult:
         """Preview what this module would clean (dry-run)."""
@@ -54,7 +67,7 @@ class SystemCacheModule(Module):
         total_bytes = 0
 
         # Scan cache directories
-        for cache_dir in self.SAFE_CACHE_DIRS:
+        for cache_dir in self._safe_cache_dirs():
             if cache_dir.exists():
                 size = dir_size(cache_dir)
                 if size > 0:
@@ -62,7 +75,7 @@ class SystemCacheModule(Module):
                     total_bytes += size
 
         # Scan log directories
-        for log_dir in self.SAFE_LOG_DIRS:
+        for log_dir in self._safe_log_dirs():
             if log_dir.exists():
                 size = dir_size(log_dir)
                 if size > 0:
@@ -82,7 +95,7 @@ class SystemCacheModule(Module):
         errors = []
 
         # Clean cache directories (remove contents, keep directory)
-        for cache_dir in self.SAFE_CACHE_DIRS:
+        for cache_dir in self._safe_cache_dirs():
             if not cache_dir.exists():
                 continue
 
@@ -112,7 +125,7 @@ class SystemCacheModule(Module):
                 errors.append(f"Failed to clean {cache_dir}: {e}")
 
         # Clean log directories (delete log files)
-        for log_dir in self.SAFE_LOG_DIRS:
+        for log_dir in self._safe_log_dirs():
             if not log_dir.exists():
                 continue
 
