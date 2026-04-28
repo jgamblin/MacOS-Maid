@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -106,6 +107,112 @@ def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any
     return result
 
 
+@dataclass
+class HomebrewConfig:
+    enabled: bool = True
+    update: bool = False
+    upgrade: bool = False
+    cleanup: bool = True
+    audit_casks: bool = True
+    check_untapped: bool = True
+
+
+@dataclass
+class DockerConfig:
+    enabled: bool = True
+    remove_dangling_images: bool = True
+    remove_unused_volumes: bool = True
+    remove_stopped_containers: bool = False
+
+
+@dataclass
+class DevCachesConfig:
+    enabled: bool = True
+    clean: list[str] = field(
+        default_factory=lambda: ["pip", "npm", "cargo", "gradle", "cocoapods", "xcode_derived"]
+    )
+
+
+@dataclass
+class GitConfig:
+    enabled: bool = False
+    repos_dir: str | None = None
+    prune_remotes: bool = True
+    delete_merged_branches: bool = False
+    protected_branches: list[str] = field(default_factory=lambda: ["main", "master", "develop"])
+    report_large_repos: bool = True
+
+
+@dataclass
+class TrashConfig:
+    enabled: bool = True
+    empty: bool = True
+
+
+@dataclass
+class WiFiConfig:
+    enabled: bool = True
+    keep_days: int = 90
+    keep_ssids: list[str] = field(default_factory=list)
+
+
+@dataclass
+class NetworkConfig:
+    enabled: bool = True
+    flush_dns: bool = True
+    check_open_ports: bool = True
+    audit_vpn_profiles: bool = True
+    check_firewall: bool = True
+
+
+@dataclass
+class PrivacyConfig:
+    enabled: bool = True
+    clear_recent_items: bool = True
+    report_old_downloads: bool = True
+    downloads_move_to_trash: bool = False
+    downloads_older_than: int = 90
+    audit_tcc_permissions: bool = True
+
+
+@dataclass
+class SystemIntegrityConfig:
+    enabled: bool = True
+    check_sip: bool = True
+    check_filevault: bool = True
+    check_gatekeeper: bool = True
+    check_xprotect: bool = True
+
+
+@dataclass
+class AppAuditConfig:
+    enabled: bool = True
+    check_unsigned: bool = True
+
+
+@dataclass
+class LaunchAuditConfig:
+    enabled: bool = True
+    audit_launch_daemons: bool = True
+    audit_launch_agents: bool = True
+    flag_non_apple: bool = True
+
+
+@dataclass
+class SystemCacheConfig:
+    enabled: bool = True
+    clean_system_logs: bool = True
+    clean_user_caches: bool = True
+
+
+@dataclass
+class ToolsConfig:
+    enabled: bool = True
+    lynis: bool = True
+    osquery: bool = True
+    knockknock: bool = False
+
+
 class MaidConfig:
     """Parsed configuration for MacOS Maid."""
 
@@ -132,6 +239,65 @@ class MaidConfig:
         if not isinstance(result, dict):
             return dict(DEFAULT_CONFIG.get(module_name, {}))
         return result
+
+    def _build(self, section: str, cls: type) -> object:
+        """Build a dataclass from config data, ignoring unknown keys."""
+        data = self.get_module_config(section)
+        valid_fields = {f.name for f in cls.__dataclass_fields__.values()}  # type: ignore[attr-defined]
+        filtered = {k: v for k, v in data.items() if k in valid_fields}
+        return cls(**filtered)
+
+    @property
+    def homebrew(self) -> HomebrewConfig:
+        return self._build("homebrew", HomebrewConfig)  # type: ignore[return-value]
+
+    @property
+    def docker(self) -> DockerConfig:
+        return self._build("docker", DockerConfig)  # type: ignore[return-value]
+
+    @property
+    def dev_caches(self) -> DevCachesConfig:
+        return self._build("dev_caches", DevCachesConfig)  # type: ignore[return-value]
+
+    @property
+    def git(self) -> GitConfig:
+        return self._build("git", GitConfig)  # type: ignore[return-value]
+
+    @property
+    def trash(self) -> TrashConfig:
+        return self._build("trash", TrashConfig)  # type: ignore[return-value]
+
+    @property
+    def wifi(self) -> WiFiConfig:
+        return self._build("wifi", WiFiConfig)  # type: ignore[return-value]
+
+    @property
+    def network(self) -> NetworkConfig:
+        return self._build("network", NetworkConfig)  # type: ignore[return-value]
+
+    @property
+    def privacy(self) -> PrivacyConfig:
+        return self._build("privacy", PrivacyConfig)  # type: ignore[return-value]
+
+    @property
+    def system_integrity(self) -> SystemIntegrityConfig:
+        return self._build("system_integrity", SystemIntegrityConfig)  # type: ignore[return-value]
+
+    @property
+    def app_audit(self) -> AppAuditConfig:
+        return self._build("app_audit", AppAuditConfig)  # type: ignore[return-value]
+
+    @property
+    def launch_audit(self) -> LaunchAuditConfig:
+        return self._build("launch_audit", LaunchAuditConfig)  # type: ignore[return-value]
+
+    @property
+    def system_cache(self) -> SystemCacheConfig:
+        return self._build("system_cache", SystemCacheConfig)  # type: ignore[return-value]
+
+    @property
+    def tools(self) -> ToolsConfig:
+        return self._build("tools", ToolsConfig)  # type: ignore[return-value]
 
 
 def load_config(path: Path | None) -> MaidConfig:
