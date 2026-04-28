@@ -149,13 +149,13 @@ class ToolsModule(Module):
             if hardening_match:
                 hardening_index = int(hardening_match.group(1))
                 if hardening_index >= 80:
-                    severity = "pass"
+                    severity = Severity.PASS
                     remediation = None
                 elif hardening_index >= 60:
-                    severity = "warn"
+                    severity = Severity.WARN
                     remediation = "Review Lynis suggestions to improve system hardening"
                 else:
-                    severity = "fail"
+                    severity = Severity.FAIL
                     remediation = "System hardening is weak. Review and implement Lynis suggestions"
 
                 findings.append(
