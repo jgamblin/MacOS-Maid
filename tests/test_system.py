@@ -75,4 +75,5 @@ def test_macos_name_mapping():
     assert _macos_name((13, 0, 0)) == "Ventura"
     assert _macos_name((14, 0, 0)) == "Sonoma"
     assert _macos_name((15, 0, 0)) == "Sequoia"
-    assert _macos_name((16, 0, 0)) == "Unknown"
+    assert _macos_name((26, 0, 0)) == "Tahoe"
+    assert _macos_name((99, 0, 0)) == "Unknown"
