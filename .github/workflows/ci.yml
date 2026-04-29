@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-14, macos-15]
+        os: [macos-26, macos-15]
         python-version: ["3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v6
@@ -24,7 +24,7 @@ jobs:
       - run: pytest tests/ -v --cov=macos_maid --cov-report=term-missing
 
   lint:
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
