@@ -2,7 +2,7 @@
 
 **macOS cleanup and security auditing tool for developers**
 
-[![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://github.com/jgamblin/MacOS-Maid)
+[![CI](https://github.com/jgamblin/MacOS-Maid/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/jgamblin/MacOS-Maid/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
 [![macOS](https://img.shields.io/badge/macOS-12%2B-000000?logo=apple)](https://www.apple.com/macos/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)

@@ -361,6 +361,6 @@ test: add safety tests for system_cache module
 
 - **Bug reports**: [Open an issue](https://github.com/jgamblin/MacOS-Maid/issues/new)
 - **Feature requests**: [Open an issue](https://github.com/jgamblin/MacOS-Maid/issues/new)
-- **Questions**: [Open a discussion](https://github.com/jgamblin/MacOS-Maid/discussions/new)
+- **Questions**: [Open an issue](https://github.com/jgamblin/MacOS-Maid/issues/new)
 
 Thank you for contributing to MacOS Maid!
