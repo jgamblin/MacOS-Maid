@@ -14,8 +14,8 @@ Thank you for your interest in contributing to MacOS Maid! This document provide
 
 ```bash
 # Clone the repository
-git clone https://github.com/jgamblin/macos-maid-v2.git
-cd macos-maid-v2
+git clone https://github.com/jgamblin/MacOS-Maid.git
+cd MacOS-Maid
 
 # Install in development mode with dev dependencies
 pip install -e ".[dev]"
@@ -359,8 +359,8 @@ test: add safety tests for system_cache module
 
 ## Questions?
 
-- **Bug reports**: [Open an issue](https://github.com/jgamblin/macos-maid-v2/issues/new)
-- **Feature requests**: [Open an issue](https://github.com/jgamblin/macos-maid-v2/issues/new)
-- **Questions**: [Open a discussion](https://github.com/jgamblin/macos-maid-v2/discussions/new)
+- **Bug reports**: [Open an issue](https://github.com/jgamblin/MacOS-Maid/issues/new)
+- **Feature requests**: [Open an issue](https://github.com/jgamblin/MacOS-Maid/issues/new)
+- **Questions**: [Open a discussion](https://github.com/jgamblin/MacOS-Maid/discussions/new)
 
 Thank you for contributing to MacOS Maid!

@@ -2,7 +2,7 @@
 
 **macOS cleanup and security auditing tool for developers**
 
-[![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://github.com/jgamblin/macos-maid-v2)
+[![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://github.com/jgamblin/MacOS-Maid)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
 [![macOS](https://img.shields.io/badge/macOS-12%2B-000000?logo=apple)](https://www.apple.com/macos/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -15,10 +15,10 @@ The tool is built around modules that fall into two categories: development clea
 
 ## Quick Start
 
-Install via Homebrew (recommended):
+Install with pipx:
 
 ```bash
-brew install jgamblin/tap/macos-maid
+pipx install git+https://github.com/jgamblin/MacOS-Maid
 ```
 
 Run a security audit (read-only, no changes):
@@ -67,27 +67,27 @@ Security Audit
 
 ## Installation
 
-### Homebrew (Recommended)
+MacOS-Maid is not on PyPI or Homebrew yet. Install it straight from GitHub.
+
+### pipx (recommended)
 
 ```bash
-brew install jgamblin/tap/macos-maid
+pipx install git+https://github.com/jgamblin/MacOS-Maid
 ```
 
-### pip / pipx
+To pin a release, add the tag: `git+https://github.com/jgamblin/MacOS-Maid@v1.0.0`.
+
+### pip
 
 ```bash
-# Using pip
-pip install macos-maid
-
-# Using pipx (isolated environment)
-pipx install macos-maid
+pip install git+https://github.com/jgamblin/MacOS-Maid
 ```
 
 ### Development Installation
 
 ```bash
-git clone https://github.com/jgamblin/macos-maid-v2.git
-cd macos-maid-v2
+git clone https://github.com/jgamblin/MacOS-Maid.git
+cd MacOS-Maid
 pip install -e ".[dev]"
 ```
 
@@ -299,8 +299,8 @@ Contributions are welcome! To get started:
 1. **Development setup**:
 
    ```bash
-   git clone https://github.com/jgamblin/macos-maid-v2.git
-   cd macos-maid-v2
+   git clone https://github.com/jgamblin/MacOS-Maid.git
+   cd MacOS-Maid
    pip install -e ".[dev]"
    ```
 
