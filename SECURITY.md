@@ -106,7 +106,7 @@ We take security seriously. If you discover a security vulnerability in MacOS Ma
 
 ### GitHub Security Advisories
 
-Use [GitHub Security Advisories](https://github.com/jgamblin/macos-maid-v2/security/advisories/new) to privately report vulnerabilities.
+Use [GitHub Security Advisories](https://github.com/jgamblin/MacOS-Maid/security/advisories/new) to privately report vulnerabilities.
 
 ### What to Include
 
@@ -136,7 +136,6 @@ When using MacOS Maid:
 
 ## Code Signing and Distribution
 
-- MacOS Maid is distributed via PyPI and Homebrew
+- MacOS Maid is distributed as source from this GitHub repository; it is not published to PyPI or Homebrew
 - The Python package is built with modern packaging standards (PEP 517)
-- Homebrew formula verifies checksums before installation
 - No pre-compiled binaries - all code is source-distributed and installed via pip
